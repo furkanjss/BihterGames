@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Frostline — Oyun Döngüsü ve Oynanabilir Prototip | bihter GAMES</title>
+  <meta name="description" content="Project Frostline yayıncı sunumu: günlük oyun döngüsü akış şeması ve tarayıcıda oynanabilir metin prototipi." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=23" />
+</head>
+<body>
+  <div class="app" id="app" data-mode="flow">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="bihter GAMES">
+        <img src="assets/bihter-logo.jpg" alt="bihter GAMES" width="44" height="44" />
+      </a>
+      <div class="topbar-title">
+        <strong>Frostline</strong>
+        <span>Hareket eden şehir · Günlük hayatta kalma döngüsü</span>
+      </div>
+
+      <div class="mode-switch" role="tablist" aria-label="Görünüm">
+        <button type="button" class="mode-btn" role="tab" data-mode="flow" aria-selected="true">Akış şeması</button>
+        <button type="button" class="mode-btn" role="tab" data-mode="play" aria-selected="false">Oyna</button>
+      </div>
+
+      <div class="topbar-actions only-flow">
+        <span class="zoom-label" id="flow-zoom">100%</span>
+        <button type="button" class="icon-btn" id="btn-zoom-out" title="Uzaklaştır">−</button>
+        <button type="button" class="icon-btn" id="btn-zoom-in" title="Yakınlaştır">+</button>
+        <button type="button" class="icon-btn" id="btn-fit">Genişliğe sığdır</button>
+        <a class="icon-btn" href="assets/frostline-akis-semasi.png" download>PNG indir</a>
+      </div>
+      <div class="topbar-actions only-play">
+        <button type="button" class="icon-btn law-btn" id="btn-laws">Kanun Kitabı</button>
+        <button type="button" class="icon-btn" id="btn-newgame">Yeni sefer</button>
+      </div>
+    </header>
+
+    <!-- AKIŞ ŞEMASI -->
+    <section class="view view-flow">
+      <div class="flow-canvas" id="flow-viewport">
+        <div class="flow-world" id="flow-world">
+          <svg class="flow-edges" id="flow-edges" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="flow-nodes" id="flow-nodes"></div>
+        </div>
+        <div class="flow-hint">Tekerlek = aşağı/yukarı · Ctrl + tekerlek = yakınlaştır · Sürükle = kaydır · Düğüme tıkla = detay</div>
+      </div>
+      <aside class="flow-dock">
+        <section>
+          <p class="kicker" id="fd-kicker">—</p>
+          <h2 id="fd-title">—</h2>
+          <p class="dock-body" id="fd-body"></p>
+          <ul class="dock-bullets" id="fd-bullets"></ul>
+        </section>
+        <section class="live-box" hidden>
+          <h3>Canlı bağlantı</h3>
+          <p id="fd-live">Oyna sekmesinde bir sefer başlatınca, bulunduğun aşama burada yanar.</p>
+        </section>
+        <section hidden>
+          <h3>Şekiller</h3>
+          <ul class="legend">
+            <li><i class="lg start"></i>Başlangıç</li>
+            <li><i class="lg process"></i>Süreç</li>
+            <li><i class="lg decision"></i>Karar</li>
+            <li><i class="lg event"></i>Sonuç / olay</li>
+            <li><i class="lg bad-soft"></i>Bedel</li>
+            <li><i class="lg good"></i>Ödül</li>
+            <li><i class="lg bad"></i>Oyun sonu</li>
+            <li><i class="lg note"></i>Ayrıntı notu</li>
+          </ul>
+        </section>
+      </aside>
+    </section>
+
+    <!-- OYNA -->
+    <section class="view view-play">
+      <div class="g-hud">
+        <div class="g-res" id="g-res"></div>
+        <div class="g-clock">
+          <div class="g-temp-ring" id="g-temp-ring" title="Dış sıcaklık"><strong id="g-temp">−20°C</strong></div>
+          <div class="g-day"><strong id="g-day">Gün 1</strong><span id="g-phase">Sabah</span></div>
+        </div>
+        <div class="g-meters">
+          <div class="g-meter disc" id="g-disc" title="100 olursa isyan çıkar"><span>Hoşnutsuzluk</span><div class="m-track"><i></i></div><b>0</b></div>
+          <div class="g-meter hope" id="g-hope" title="0 olursa isyan çıkar"><span>Umut</span><div class="m-track"><i></i></div><b>0</b></div>
+        </div>
+      </div>
+
+      <div class="g-trainbar">
+        <div class="g-km">
+          <span class="g-km-label" id="g-km-label">Kilometre taşı 500 km</span>
+          <div class="g-km-track"><i id="g-km-fill"></i><em id="g-km-storm" title="Fırtına cephesi"></em></div>
+          <b id="g-km-text">0 km</b>
+        </div>
+        <div class="g-trainline" id="g-trainline"></div>
+      </div>
+
+      <div class="g-grid">
+        <aside class="g-left">
+          <section class="g-panel">
+            <h3>Kazan</h3>
+            <p class="help">Seviye ne kadar yüksekse vagonlar o kadar sıcak olur ama daha çok kömür yanar. Her seviye 2 ateşçi ister.</p>
+            <div id="g-train"></div>
+          </section>
+          <section class="g-panel">
+            <h3>Görevler</h3>
+            <p class="help">İşçileri dağıt. Boşta kalan işçi hiçbir şey üretmez.</p>
+            <div id="g-jobs"></div>
+          </section>
+          <section class="g-panel">
+            <h3>Karakterler</h3>
+            <p class="help">Doğru göreve koyarsan yetenekleri devreye girer.</p>
+            <div class="g-chars" id="g-chars"></div>
+          </section>
+        </aside>
+
+        <main class="g-center">
+          <div class="g-teach" id="g-teach" hidden>
+            <p><b>Sırayla ilerle.</b> Şimdilik sadece ortadaki karta bak ve bir seçim yap. Kaynaklar üstte; yan panelleri istediğin zaman açabilirsin.</p>
+            <button type="button" class="btn btn-ghost small" id="btn-panels-open">Yan panelleri aç</button>
+          </div>
+          <ol class="g-steps">
+            <li class="g-step" data-phase="morning"><i>1</i>Sabah</li>
+            <li class="g-step" data-phase="route"><i>2</i>Rota</li>
+            <li class="g-step" data-phase="travel"><i>3</i>Seyahat</li>
+            <li class="g-step" data-phase="stop"><i>4</i>Durak</li>
+            <li class="g-step" data-phase="evening"><i>5</i>Akşam</li>
+            <li class="g-step" data-phase="night"><i>6</i>Gece</li>
+          </ol>
+          <p class="g-todo" id="g-todo"></p>
+          <article class="g-card" id="g-card">
+            <div class="g-scene" id="g-scene"></div>
+            <p class="kicker" id="g-card-kicker"></p>
+            <h2 id="g-card-title"></h2>
+            <div class="g-result" id="g-result" hidden></div>
+            <div class="g-card-body" id="g-card-body"></div>
+            <div class="g-choices" id="g-choices"></div>
+          </article>
+        </main>
+
+        <aside class="g-right">
+          <section class="g-panel">
+            <h3>Nüfus</h3>
+            <div class="g-pop" id="g-pop"></div>
+          </section>
+          <section class="g-panel">
+            <h3>Gidişat</h3>
+            <div id="g-trend"></div>
+          </section>
+          <section class="g-panel">
+            <h3>Sözler</h3>
+            <ul class="g-promises" id="g-promises"></ul>
+          </section>
+          <section class="g-panel">
+            <h3>İmzalı kanunlar</h3>
+            <p class="g-signed" id="g-signed"></p>
+          </section>
+          <section class="g-panel grow">
+            <h3>Seyir defteri</h3>
+            <ol class="g-log" id="g-log"></ol>
+          </section>
+        </aside>
+      </div>
+      <div class="g-flash" id="g-flash"></div>
+      <div class="g-toast" id="g-toast" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <dialog class="law-dialog" id="law-dialog">
+    <header>
+      <div>
+        <p class="kicker">Kanun Kitabı</p>
+        <h2>Toplumun kuralları</h2>
+        <p class="muted" id="law-cooldown"></p>
+      </div>
+      <button type="button" class="icon-btn" id="law-close">Kapat</button>
+    </header>
+    <div id="law-list"></div>
+  </dialog>
+
+  <script src="flow-data.js?v=23"></script>
+  <script src="flow.js?v=23"></script>
+  <script src="game.js?v=23"></script>
+  <script>
+    (function () {
+      const app = document.getElementById("app");
+      const btns = document.querySelectorAll(".mode-btn");
+      function setMode(m) {
+        app.dataset.mode = m;
+        btns.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mode === m)));
+        if (m === "flow") requestAnimationFrame(() => window.FlowView && window.FlowView.focusLive());
+      }
+      btns.forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+      requestAnimationFrame(() => window.FlowView && window.FlowView.fit());
+    })();
+  </script>
+</body>
+</html>
