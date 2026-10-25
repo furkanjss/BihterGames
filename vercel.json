@@ -1,5 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/publisherpitch", "destination": "/publisherpitch/index.html" }
+  "redirects": [
+    { "source": "/publisherpitch", "destination": "/publisherpitch/", "permanent": true }
   ]
 }
