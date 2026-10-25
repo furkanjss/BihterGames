@@ -1,0 +1,72 @@
+:root {
+  --ink: #070707;
+  --panel: #101010;
+  --panel-2: #161616;
+  --lime: #c8ff2e;
+  --lime-deep: #a8e000;
+  --snow: #f5f5f0;
+  --muted: rgba(245, 245, 240, 0.58);
+  --line: rgba(245, 245, 240, 0.1);
+  --danger: #ff5c5c;
+  --high: #ff7a59;
+  --med: #ffd166;
+  --low: #7dd3fc;
+  --font-display: 'Baloo 2', system-ui, sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sidebar: 280px;
+  color: var(--snow);
+  background: var(--ink);
+  font-family: var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--ink);
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--lime);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
