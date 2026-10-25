@@ -114,22 +114,62 @@ function App() {
         </section>
 
         <section className="studio" id="studio">
-          <div className="studio__visual">
-            <img
-              src="/logos/logo-black.png"
-              alt="bihter GAMES logo"
-              width={360}
-              height={380}
-            />
-          </div>
-          <div className="studio__copy">
-            <p className="eyebrow eyebrow--dark">Studio</p>
-            <h2>Small team. Big curiosity.</h2>
-            <p>
-              Bihter Games is an independent game company focused on bold visual
-              identity and player-first moments. From prototype to release, we
-              protect the feeling in every step.
+          <div className="studio__intro">
+            <p className="eyebrow">Studio</p>
+            <h2>Small team. Shipped experience.</h2>
+            <p className="lede">
+              Bihter Games is lean on purpose. Behind it is professional Unity
+              work on Steam titles and shipped mobile games — so every system we
+              build comes from something already proven in production.
             </p>
+          </div>
+
+          <div className="stats">
+            <article className="stat">
+              <p className="stat__num">5+</p>
+              <p className="stat__label">years building Unity games professionally</p>
+            </article>
+            <article className="stat">
+              <p className="stat__num">800K+</p>
+              <p className="stat__label">
+                Steam wishlists on a live title in active development
+              </p>
+            </article>
+            <article className="stat">
+              <p className="stat__num">5M+</p>
+              <p className="stat__label">
+                demo players reached during Steam Next Fest
+              </p>
+            </article>
+            <article className="stat">
+              <p className="stat__num">3+</p>
+              <p className="stat__label">
+                years shipping hyper-casual mobile titles at studio scale
+              </p>
+            </article>
+          </div>
+
+          <div className="roles">
+            <article className="role">
+              <p className="role__tag">Founder</p>
+              <h3>Furkan Çağlar</h3>
+              <p className="role__title">Game developer</p>
+              <p>
+                Designs, programs, and ships Bihter Games titles — gameplay
+                systems, multiplayer foundations, Steam-ready builds, and the
+                full path from prototype to release.
+              </p>
+            </article>
+            <article className="role">
+              <p className="role__tag">Carried over</p>
+              <h3>What we bring</h3>
+              <ul className="role__list">
+                <li>Unity multiplayer with Netcode for GameObjects</li>
+                <li>Steam shipping, wishlists, and festival-ready demos</li>
+                <li>Mobile production pace from hyper-casual studios</li>
+                <li>Fast prototyping with player-first systems</li>
+              </ul>
+            </article>
           </div>
         </section>
 
