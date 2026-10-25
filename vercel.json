@@ -1,4 +1,4 @@
-﻿{
+{
   "rewrites": [
     { "source": "/publisherpitch", "destination": "/publisherpitch/index.html" }
   ]
