@@ -304,6 +304,7 @@ export function useStudio(userId: string | undefined) {
         assigneeId: string | null
         dueDate: string | null
         notes: string | null
+        projectId: string
       }>,
     ) => {
       if (!supabase) return
@@ -315,6 +316,7 @@ export function useStudio(userId: string | undefined) {
       if (patch.assigneeId !== undefined) row.assignee_id = patch.assigneeId
       if (patch.dueDate !== undefined) row.due_date = patch.dueDate
       if (patch.notes !== undefined) row.notes = patch.notes
+      if (patch.projectId !== undefined) row.project_id = patch.projectId
 
       const { data, error: err } = await supabase
         .from('tasks')

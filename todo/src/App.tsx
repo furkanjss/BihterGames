@@ -2,7 +2,9 @@ import { useMemo, useState, type DragEvent, type FormEvent } from 'react'
 import './App.css'
 import { LoginView } from './LoginView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
+import { TaskModal, type TaskFormValue } from './TaskModal'
 import { BLIND_TAXI_TASKS } from './taskTemplates'
+import type { Task } from './types'
 import {
   GAME_AREAS,
   IDEAS_OWNER_EMAIL,
@@ -46,6 +48,7 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [modalKind, setModalKind] = useState<ProjectKind>('game')
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   const myTasks = useMemo(() => {
     if (!auth.user) return []
@@ -697,6 +700,15 @@ function App() {
                           className="kcard kcard--mini"
                           draggable
                           onDragStart={(e) => onDragStart(e, task.id)}
+                          onClick={() => setEditingTask(task)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              setEditingTask(task)
+                            }
+                          }}
                         >
                           <div className="kcard__row">
                             <p className="kcard__title">{task.title}</p>
@@ -704,7 +716,10 @@ function App() {
                               type="button"
                               className="kcard__x"
                               aria-label="Sil"
-                              onClick={() => void studio.deleteTask(task.id)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                void studio.deleteTask(task.id)
+                              }}
                             >
                               ×
                             </button>
@@ -964,6 +979,29 @@ function App() {
         defaultKind={modalKind}
         onClose={() => setModalOpen(false)}
         onSubmit={(v) => void handleProjectSubmit(v)}
+      />
+
+      <TaskModal
+        open={Boolean(editingTask)}
+        task={editingTask}
+        projects={studio.projects}
+        profiles={studio.profiles}
+        onClose={() => setEditingTask(null)}
+        onSave={async (id, value: TaskFormValue) => {
+          await studio.updateTask(id, {
+            title: value.title.trim(),
+            area: value.area,
+            priority: value.priority,
+            status: value.status,
+            assigneeId: value.assigneeId || null,
+            dueDate: value.dueDate || null,
+            notes: value.notes.trim() || null,
+            projectId: value.projectId,
+          })
+        }}
+        onDelete={async (id) => {
+          await studio.deleteTask(id)
+        }}
       />
     </div>
   )
