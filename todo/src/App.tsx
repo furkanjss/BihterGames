@@ -730,11 +730,8 @@ function App() {
                             )}
                             <span className="tag">{areaLabel}</span>
                             <span className={`prio prio--${task.priority}`}>
-                              {task.priority === 'high'
-                                ? 'H'
-                                : task.priority === 'medium'
-                                  ? 'M'
-                                  : 'L'}
+                              {PRIORITIES.find((p) => p.id === task.priority)
+                                ?.label ?? task.priority}
                             </span>
                             {task.assigneeId && (
                               <span className="kcard__who">{who}</span>
