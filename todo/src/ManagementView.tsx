@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
+import { formatMoney, formatMoneyInput, parseMoney } from './money'
 import {
   FINANCE_CATEGORIES,
   FINANCE_TYPES,
@@ -6,13 +7,7 @@ import {
   type FinanceEntryType,
 } from './types'
 
-function money(n: number, currency = 'TRY') {
-  return new Intl.NumberFormat('tr-TR', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(n)
-}
+const money = formatMoney
 
 export function ManagementView({
   finance,
@@ -91,7 +86,7 @@ export function ManagementView({
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    const n = Number(amount.replace(',', '.'))
+    const n = parseMoney(amount)
     if (!label.trim() || Number.isNaN(n) || n < 0) return
     await onAdd({
       entryType,
@@ -167,9 +162,9 @@ export function ManagementView({
           />
           <input
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Tutar"
-            inputMode="decimal"
+            onChange={(e) => setAmount(formatMoneyInput(e.target.value))}
+            placeholder="örn. 100.000.000"
+            inputMode="numeric"
             required
           />
           <input
