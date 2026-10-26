@@ -155,9 +155,9 @@ function App() {
   }
 
   async function seedBlindTaxi() {
-    let project = studio.projects.find((p) =>
-      p.name.toLowerCase().includes('blind taxi'),
-    )
+    let project =
+      studio.projects.find((p) => p.name.toLowerCase().includes('blind taxi')) ??
+      null
     if (!project) {
       project = await studio.addProject({
         name: 'Blind Taxi',
