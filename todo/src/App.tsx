@@ -38,6 +38,8 @@ function App() {
   const [bulkOpen, setBulkOpen] = useState(false)
   const [bulkText, setBulkText] = useState('')
   const [bulkProjectId, setBulkProjectId] = useState('')
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkMsg, setBulkMsg] = useState<string | null>(null)
   const [nameDraft, setNameDraft] = useState('')
   const [editingName, setEditingName] = useState(false)
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null)
@@ -140,35 +142,37 @@ function App() {
   }
 
   async function submitBulk() {
+    setBulkMsg(null)
     const projectId =
       bulkProjectId ||
       (projectFilter !== 'all' ? projectFilter : '') ||
       studio.activeProjectId
     if (!projectId) {
-      alert('Toplu eklemek için bir proje seç.')
+      setBulkMsg('Toplu eklemek için bir proje seç.')
       return
     }
     const lines = bulkText
       .split(/\r?\n/)
-      .map((l) => l.replace(/^[-*•]\s+/, '').trim())
-      .filter(Boolean)
+      .map((l) => l.replace(/^[-*•·…]+\s*/, '').trim())
+      .filter((t) => t && t !== '…' && t !== '...')
       .map((t) => ({ title: t, area, priority }))
     if (lines.length === 0) {
-      alert('Her satıra bir görev yaz.')
+      setBulkMsg('Her satıra bir görev yaz (placeholder yetmez — gerçekten yaz/yapıştır).')
       return
     }
-    const n = await studio.addTasksBulk(projectId, lines)
-    if (n > 0) {
-      setBulkText('')
-      setBulkOpen(false)
-      setProjectFilter(projectId)
-      studio.setActiveProjectId(projectId)
-      alert(`${n} görev eklendi.`)
-    } else {
-      alert(
-        studio.error ||
-          'Görevler eklenemedi. Proje seçili mi ve Supabase bağlantısı var mı kontrol et.',
-      )
+    setBulkBusy(true)
+    try {
+      const result = await studio.addTasksBulk(projectId, lines)
+      if (result.count > 0) {
+        setBulkText('')
+        setProjectFilter(projectId)
+        studio.setActiveProjectId(projectId)
+        setBulkMsg(`${result.count} görev eklendi.`)
+      } else {
+        setBulkMsg(result.error || studio.error || 'Eklenemedi.')
+      }
+    } finally {
+      setBulkBusy(false)
     }
   }
 
@@ -199,10 +203,11 @@ function App() {
       studio.setActiveProjectId(project.id)
       return
     }
-    const n = await studio.addTasksBulk(project.id, missing)
+    const result = await studio.addTasksBulk(project.id, missing)
     setProjectFilter(project.id)
     studio.setActiveProjectId(project.id)
-    if (n > 0) alert(`${n} Blind Taxi görevi eklendi.`)
+    if (result.count > 0) alert(`${result.count} Blind Taxi görevi eklendi.`)
+    else if (result.error) alert(result.error)
   }
 
   function onDragStart(e: DragEvent, taskId: string) {
@@ -642,13 +647,15 @@ function App() {
                   rows={8}
                   placeholder={'GDD\nKarakter Tasarımı\nSteam Capsule Art\n…'}
                 />
+                {bulkMsg && <p className="bulk__msg">{bulkMsg}</p>}
                 <div className="composer__row">
                   <button
                     type="button"
                     className="btn btn--lime btn--sm"
+                    disabled={bulkBusy}
                     onClick={() => void submitBulk()}
                   >
-                    Satırları ekle
+                    {bulkBusy ? 'Ekleniyor…' : 'Satırları ekle'}
                   </button>
                   <button
                     type="button"

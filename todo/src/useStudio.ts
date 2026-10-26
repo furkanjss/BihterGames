@@ -246,8 +246,13 @@ export function useStudio(userId: string | undefined) {
     async (
       projectId: string,
       lines: { title: string; area?: GameArea; priority?: Priority }[],
-    ) => {
-      if (!supabase || !userId || !projectId || lines.length === 0) return 0
+    ): Promise<{ count: number; error?: string }> => {
+      if (!supabase || !userId) {
+        return { count: 0, error: 'Oturum veya Supabase yok.' }
+      }
+      if (!projectId) {
+        return { count: 0, error: 'Proje seçilmedi.' }
+      }
       const rows = lines
         .map((l) => ({
           project_id: projectId,
@@ -258,22 +263,34 @@ export function useStudio(userId: string | undefined) {
           created_by: userId,
         }))
         .filter((r) => r.title)
-      if (rows.length === 0) return 0
-      const { data, error: err } = await supabase
-        .from('tasks')
-        .insert(rows)
-        .select('*')
+      if (rows.length === 0) {
+        return { count: 0, error: 'Eklenecek satır yok.' }
+      }
+
+      // Don't chain .select() — RLS can return empty data even after a good insert
+      const { error: err } = await supabase.from('tasks').insert(rows)
       if (err) {
         setError(err.message)
-        return 0
+        return { count: 0, error: err.message }
       }
-      const mapped = (data ?? []).map((r) =>
-        mapTask(r as Record<string, unknown>),
-      )
-      setTasks((prev) => [...mapped, ...prev])
-      return mapped.length
+
+      const { data, error: loadErr } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false })
+      if (!loadErr && data) {
+        setTasks((prev) => {
+          const others = prev.filter((t) => t.projectId !== projectId)
+          const mapped = data.map((r) => mapTask(r as Record<string, unknown>))
+          return [...mapped, ...others]
+        })
+      } else {
+        await refresh()
+      }
+      return { count: rows.length }
     },
-    [userId],
+    [userId, refresh],
   )
 
   const updateTask = useCallback(

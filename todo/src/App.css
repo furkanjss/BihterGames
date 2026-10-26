@@ -541,6 +541,11 @@
   color: var(--muted);
 }
 
+.bulk__msg {
+  font-size: 0.9rem;
+  color: var(--lime);
+}
+
 .bulk textarea {
   width: 100%;
   padding: 0.65rem 0.75rem;
