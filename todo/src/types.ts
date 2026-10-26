@@ -21,9 +21,16 @@ export type GameArea =
 
 export type Priority = 'low' | 'medium' | 'high'
 
-export type FinanceType = 'income' | 'expense' | 'payroll' | 'budget'
+export type TaskStatus = 'todo' | 'doing' | 'done'
 
-export type CurrencyCode = 'TRY' | 'USD' | 'EUR' | 'GBP'
+export type UserRole = 'admin' | 'member'
+
+export interface Profile {
+  id: string
+  displayName: string
+  role: UserRole
+  createdAt: string
+}
 
 export interface Project {
   id: string
@@ -37,9 +44,17 @@ export interface Project {
   genre?: string
   startDate?: string
   targetDate?: string
-  budgetAmount?: number
-  budgetCurrency?: CurrencyCode
   teamNotes?: string
+  createdBy?: string | null
+}
+
+export interface Document {
+  id: string
+  projectId: string
+  title: string
+  url: string
+  createdAt: string
+  createdBy?: string | null
 }
 
 export interface Task {
@@ -48,32 +63,12 @@ export interface Task {
   title: string
   area: GameArea
   priority: Priority
-  done: boolean
+  status: TaskStatus
+  assigneeId?: string | null
   createdAt: string
   dueDate?: string
   notes?: string
-}
-
-export interface FinanceEntry {
-  id: string
-  type: FinanceType
-  label: string
-  amount: number
-  currency: CurrencyCode
-  date: string
-  month: string
-  category?: string
-  recurring?: boolean
-  projectId?: string
-  notes?: string
-  createdAt: string
-}
-
-export interface AppData {
-  version: 2
-  projects: Project[]
-  tasks: Task[]
-  finance: FinanceEntry[]
+  createdBy?: string | null
 }
 
 export const GAME_AREAS: { id: GameArea; label: string }[] = [
@@ -95,6 +90,12 @@ export const PRIORITIES: { id: Priority; label: string }[] = [
   { id: 'high', label: 'Yüksek' },
 ]
 
+export const TASK_STATUSES: { id: TaskStatus; label: string }[] = [
+  { id: 'todo', label: 'Not started' },
+  { id: 'doing', label: 'In progress' },
+  { id: 'done', label: 'Done' },
+]
+
 export const PROJECT_STATUSES: { id: ProjectStatus; label: string }[] = [
   { id: 'idea', label: 'Fikir' },
   { id: 'preprod', label: 'Ön prodüksiyon' },
@@ -107,37 +108,3 @@ export const PROJECT_STATUSES: { id: ProjectStatus; label: string }[] = [
 export const PLATFORMS = ['PC', 'Steam', 'Mobil', 'Konsol', 'Web', 'VR'] as const
 
 export const ENGINES = ['Unity', 'Unreal', 'Godot', 'Özel', 'Diğer'] as const
-
-export const CURRENCIES: CurrencyCode[] = ['TRY', 'USD', 'EUR', 'GBP']
-
-export const FINANCE_TYPES: { id: FinanceType; label: string }[] = [
-  { id: 'income', label: 'Gelir' },
-  { id: 'expense', label: 'Gider' },
-  { id: 'payroll', label: 'Maaş / personel' },
-  { id: 'budget', label: 'Bütçe girişi' },
-]
-
-export const EXPENSE_CATEGORIES = [
-  'Yazılım',
-  'Donanım',
-  'Ofis',
-  'Pazarlama',
-  'Seyahat',
-  'Freelance',
-  'Vergi',
-  'Diğer',
-]
-
-export const PAYROLL_CATEGORIES = [
-  'Maaş',
-  'Freelance',
-  'Prim',
-  'Yan haklar',
-  'Diğer',
-]
-
-export const STATUS_FILTERS: { id: 'open' | 'done' | 'all'; label: string }[] = [
-  { id: 'open', label: 'Açık' },
-  { id: 'done', label: 'Biten' },
-  { id: 'all', label: 'Tümü' },
-]

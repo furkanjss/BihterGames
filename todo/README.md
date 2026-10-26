@@ -1,32 +1,31 @@
-# React + TypeScript + Vite
+# Bihter Games — Studio Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Internal team board at `https://bihtergames.com/studio/`.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Create a free [Supabase](https://supabase.com) project.
+2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL Editor.
+3. Copy `.env.example` → `.env.local` and fill:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. In Supabase Auth → Users, create 2–3 email/password accounts.
+5. On Vercel, add the same `VITE_SUPABASE_*` env vars and redeploy.
 
-## React Compiler
+## Local
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd todo
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Opens on port 5174 with base `/studio/`.
+
+## Build (from repo root)
+
+```bash
+npm run build
+```
+
+Landing → `dist/`, Studio Hub → `dist/studio/`.

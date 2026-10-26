@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm ci --prefix todo && npm run build --prefix todo",
     "preview": "vite preview",
     "todo": "npm run dev --prefix todo",
     "todo:build": "npm run build --prefix todo"

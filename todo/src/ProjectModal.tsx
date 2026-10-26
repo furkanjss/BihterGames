@@ -1,16 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type {
-  CurrencyCode,
-  Project,
-  ProjectKind,
-  ProjectStatus,
-} from './types'
-import {
-  CURRENCIES,
-  ENGINES,
-  PLATFORMS,
-  PROJECT_STATUSES,
-} from './types'
+import type { Project, ProjectKind, ProjectStatus } from './types'
+import { ENGINES, PLATFORMS, PROJECT_STATUSES } from './types'
 
 export type ProjectFormValue = {
   name: string
@@ -22,8 +12,6 @@ export type ProjectFormValue = {
   genre: string
   startDate: string
   targetDate: string
-  budgetAmount: string
-  budgetCurrency: CurrencyCode
   teamNotes: string
 }
 
@@ -37,8 +25,6 @@ const empty = (kind: ProjectKind = 'game'): ProjectFormValue => ({
   genre: '',
   startDate: '',
   targetDate: '',
-  budgetAmount: '',
-  budgetCurrency: 'TRY',
   teamNotes: '',
 })
 
@@ -53,11 +39,6 @@ function fromProject(p: Project): ProjectFormValue {
     genre: p.genre ?? '',
     startDate: p.startDate ?? '',
     targetDate: p.targetDate ?? '',
-    budgetAmount:
-      p.budgetAmount != null && !Number.isNaN(p.budgetAmount)
-        ? String(p.budgetAmount)
-        : '',
-    budgetCurrency: p.budgetCurrency ?? 'TRY',
     teamNotes: p.teamNotes ?? '',
   }
 }
@@ -81,25 +62,24 @@ export function ProjectModal({
 
   useEffect(() => {
     if (!open) return
-    if (mode === 'edit' && initial) setForm(fromProject(initial))
-    else setForm(empty(defaultKind ?? 'game'))
-  }, [open, mode, initial, defaultKind])
+    setForm(initial ? fromProject(initial) : empty(defaultKind ?? 'game'))
+  }, [open, initial, defaultKind])
 
   if (!open) return null
-
-  function togglePlatform(platform: string) {
-    setForm((prev) => ({
-      ...prev,
-      platforms: prev.platforms.includes(platform)
-        ? prev.platforms.filter((p) => p !== platform)
-        : [...prev.platforms, platform],
-    }))
-  }
 
   function submit(e: FormEvent) {
     e.preventDefault()
     if (!form.name.trim()) return
     onSubmit(form)
+  }
+
+  function togglePlatform(p: string) {
+    setForm((f) => ({
+      ...f,
+      platforms: f.platforms.includes(p)
+        ? f.platforms.filter((x) => x !== p)
+        : [...f.platforms, p],
+    }))
   }
 
   return (
@@ -108,116 +88,105 @@ export function ProjectModal({
         className="modal"
         role="dialog"
         aria-modal="true"
-        aria-label={mode === 'edit' ? 'Projeyi düzenle' : 'Yeni proje'}
+        aria-labelledby="project-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal__head">
-          <h2>{mode === 'edit' ? 'Projeyi düzenle' : 'Yeni proje'}</h2>
-          <button type="button" className="task__delete" onClick={onClose}>
+          <h2 id="project-modal-title">
+            {mode === 'edit' ? 'Projeyi düzenle' : 'Yeni proje'}
+          </h2>
+          <button type="button" className="icon-x" onClick={onClose} aria-label="Kapat">
             ×
           </button>
         </header>
 
         <form className="modal__form" onSubmit={submit}>
           <label>
-            Ad
+            İsim
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Blind Taxi, Frostline…"
               required
               autoFocus
             />
           </label>
 
-          <div className="modal__row">
-            <label>
-              Tür
-              <select
-                value={form.kind}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    kind: e.target.value as ProjectKind,
-                    status:
-                      e.target.value === 'personal' ? 'production' : form.status,
-                  })
-                }
-              >
-                <option value="game">Oyun</option>
-                <option value="personal">Kişisel</option>
-              </select>
-            </label>
-            <label>
-              Durum
-              <select
-                value={form.status}
-                onChange={(e) =>
-                  setForm({ ...form, status: e.target.value as ProjectStatus })
-                }
-              >
-                {PROJECT_STATUSES.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label>
+            Tür
+            <select
+              value={form.kind}
+              onChange={(e) =>
+                setForm({ ...form, kind: e.target.value as ProjectKind })
+              }
+            >
+              <option value="game">Oyun</option>
+              <option value="personal">Kişisel / yönetim</option>
+            </select>
+          </label>
+
+          <label>
+            Durum
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm({ ...form, status: e.target.value as ProjectStatus })
+              }
+            >
+              {PROJECT_STATUSES.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label>
             Açıklama
             <textarea
-              rows={3}
               value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              placeholder="Pitch, hedefler, dikey dilim notları…"
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={3}
+              placeholder="Kısa proje özeti"
             />
           </label>
 
           {form.kind === 'game' && (
             <>
-              <div className="modal__row">
-                <label>
-                  Motor
-                  <select
-                    value={form.engine}
-                    onChange={(e) =>
-                      setForm({ ...form, engine: e.target.value })
-                    }
-                  >
-                    <option value="">—</option>
-                    {ENGINES.map((engine) => (
-                      <option key={engine} value={engine}>
-                        {engine}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Tür / genre
-                  <input
-                    value={form.genre}
-                    onChange={(e) =>
-                      setForm({ ...form, genre: e.target.value })
-                    }
-                    placeholder="Roguelike, puzzle…"
-                  />
-                </label>
-              </div>
+              <label>
+                Motor
+                <select
+                  value={form.engine}
+                  onChange={(e) => setForm({ ...form, engine: e.target.value })}
+                >
+                  {ENGINES.map((eng) => (
+                    <option key={eng} value={eng}>
+                      {eng}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Tür / genre
+                <input
+                  value={form.genre}
+                  onChange={(e) => setForm({ ...form, genre: e.target.value })}
+                  placeholder="Survival, puzzle…"
+                />
+              </label>
 
               <fieldset className="modal__platforms">
                 <legend>Platformlar</legend>
                 <div className="modal__chips">
-                  {PLATFORMS.map((platform) => (
+                  {PLATFORMS.map((p) => (
                     <button
-                      key={platform}
+                      key={p}
                       type="button"
-                      className={`pill ${form.platforms.includes(platform) ? 'is-active' : ''}`}
-                      onClick={() => togglePlatform(platform)}
+                      className={`pill ${form.platforms.includes(p) ? 'is-active' : ''}`}
+                      onClick={() => togglePlatform(p)}
                     >
-                      {platform}
+                      {p}
                     </button>
                   ))}
                 </div>
@@ -231,73 +200,35 @@ export function ProjectModal({
               <input
                 type="date"
                 value={form.startDate}
-                onChange={(e) =>
-                  setForm({ ...form, startDate: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, startDate: e.target.value })}
               />
             </label>
             <label>
-              Hedef tarih
+              Hedef
               <input
                 type="date"
                 value={form.targetDate}
-                onChange={(e) =>
-                  setForm({ ...form, targetDate: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, targetDate: e.target.value })}
               />
-            </label>
-          </div>
-
-          <div className="modal__row">
-            <label>
-              Proje bütçesi
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.budgetAmount}
-                onChange={(e) =>
-                  setForm({ ...form, budgetAmount: e.target.value })
-                }
-                placeholder="0"
-              />
-            </label>
-            <label>
-              Para birimi
-              <select
-                value={form.budgetCurrency}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    budgetCurrency: e.target.value as CurrencyCode,
-                  })
-                }
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
             </label>
           </div>
 
           <label>
-            Ekip / notlar
+            Notlar
             <textarea
-              rows={2}
               value={form.teamNotes}
               onChange={(e) => setForm({ ...form, teamNotes: e.target.value })}
-              placeholder="Ekip boyutu, ortaklar, kısıtlar…"
+              rows={2}
+              placeholder="Ekip notları"
             />
           </label>
 
           <div className="modal__actions">
             <button type="button" className="btn btn--ghost" onClick={onClose}>
-              Vazgeç
+              İptal
             </button>
             <button type="submit" className="btn btn--lime">
-              {mode === 'edit' ? 'Kaydet' : 'Proje oluştur'}
+              {mode === 'edit' ? 'Kaydet' : 'Oluştur'}
             </button>
           </div>
         </form>

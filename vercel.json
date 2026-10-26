@@ -1,5 +1,14 @@
 {
   "redirects": [
-    { "source": "/publisherpitch", "destination": "/publisherpitch/", "permanent": true }
+    {
+      "source": "/publisherpitch",
+      "destination": "/publisherpitch/",
+      "permanent": true
+    },
+    {
+      "source": "/studio",
+      "destination": "/studio/",
+      "permanent": true
+    }
   ]
 }
