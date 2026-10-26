@@ -98,12 +98,14 @@ create table if not exists public.tasks (
   assignee_id uuid references public.profiles (id) on delete set null,
   due_date date,
   notes text,
+  sort_order int not null default 0,
   created_at timestamptz not null default now(),
   created_by uuid references public.profiles (id) on delete set null
 );
 
 create index if not exists tasks_project_id_idx on public.tasks (project_id);
 create index if not exists tasks_assignee_id_idx on public.tasks (assignee_id);
+create index if not exists tasks_status_sort_idx on public.tasks (status, sort_order);
 
 alter table public.tasks enable row level security;
 

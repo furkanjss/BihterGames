@@ -1,4 +1,10 @@
-import { useMemo, useState, type DragEvent, type FormEvent } from 'react'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type FormEvent,
+} from 'react'
 import './App.css'
 import { LoginView } from './LoginView'
 import { ManagementView } from './ManagementView'
@@ -43,6 +49,12 @@ function App() {
   const [nameDraft, setNameDraft] = useState('')
   const [editingName, setEditingName] = useState(false)
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null)
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const dropTargetRef = useRef<{ status: TaskStatus; index: number } | null>(
+    null,
+  )
+  const didDrag = useRef(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [modalKind, setModalKind] = useState<ProjectKind>('game')
@@ -66,7 +78,10 @@ function App() {
   const columns = useMemo(() => {
     return TASK_STATUSES.map((col) => ({
       ...col,
-      tasks: boardTasks.filter((t) => t.status === col.id),
+      tasks: boardTasks
+        .filter((t) => t.status === col.id)
+        .slice()
+        .sort((a, b) => a.sortOrder - b.sortOrder),
     }))
   }, [boardTasks])
 
@@ -142,23 +157,80 @@ function App() {
     setDocUrl('')
   }
 
+  function clearDropTarget() {
+    dropTargetRef.current = null
+    setDragOverCol(null)
+    setDropIndex(null)
+  }
+
+  function indexFromPointer(listEl: HTMLElement, clientY: number): number {
+    const cards = [
+      ...listEl.querySelectorAll<HTMLElement>('[data-task-id]'),
+    ]
+    for (let i = 0; i < cards.length; i++) {
+      const rect = cards[i].getBoundingClientRect()
+      if (clientY < rect.top + rect.height / 2) return i
+    }
+    return cards.length
+  }
+
+  function previewDrop(status: TaskStatus, listEl: HTMLElement, clientY: number) {
+    const index = indexFromPointer(listEl, clientY)
+    dropTargetRef.current = { status, index }
+    setDragOverCol(status)
+    setDropIndex(index)
+  }
+
   function onDragStart(e: DragEvent, taskId: string) {
-    e.dataTransfer.setData('text/task-id', taskId)
+    setDraggingId(taskId)
+    didDrag.current = true
+    e.dataTransfer.setData('text/plain', taskId)
     e.dataTransfer.effectAllowed = 'move'
   }
 
-  function onDragOver(e: DragEvent, status: TaskStatus) {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setDragOverCol(status)
+  function onDragEnd() {
+    setDraggingId(null)
+    clearDropTarget()
   }
 
-  async function onDrop(e: DragEvent, status: TaskStatus) {
+  function onListDragOver(e: DragEvent, status: TaskStatus) {
     e.preventDefault()
-    setDragOverCol(null)
-    const id = e.dataTransfer.getData('text/task-id')
+    e.dataTransfer.dropEffect = 'move'
+    previewDrop(status, e.currentTarget as HTMLElement, e.clientY)
+  }
+
+  function onListDragLeave(e: DragEvent) {
+    const related = e.relatedTarget as Node | null
+    if (related && (e.currentTarget as HTMLElement).contains(related)) return
+    clearDropTarget()
+  }
+
+  async function onListDrop(e: DragEvent, status: TaskStatus) {
+    e.preventDefault()
+    e.stopPropagation()
+    const listEl = e.currentTarget as HTMLElement
+    const id =
+      e.dataTransfer.getData('text/plain') ||
+      e.dataTransfer.getData('text') ||
+      draggingId
+    const dropAt = indexFromPointer(listEl, e.clientY)
+
+    setDraggingId(null)
+    clearDropTarget()
     if (!id) return
-    await studio.updateTask(id, { status })
+
+    const visibleIds = [
+      ...listEl.querySelectorAll<HTMLElement>('[data-task-id]'),
+    ].map((el) => el.dataset.taskId!)
+
+    const fromIndex = visibleIds.indexOf(id)
+    let toIndex = dropAt
+    if (fromIndex >= 0) {
+      if (toIndex === fromIndex || toIndex === fromIndex + 1) return
+      if (toIndex > fromIndex) toIndex -= 1
+    }
+
+    await studio.moveTask(id, status, toIndex, visibleIds)
   }
 
   async function saveName() {
@@ -608,16 +680,18 @@ function App() {
                 <section
                   key={col.id}
                   className={`kanban__col ${dragOverCol === col.id ? 'is-drop' : ''}`}
-                  onDragOver={(e) => onDragOver(e, col.id)}
-                  onDragLeave={() => setDragOverCol(null)}
-                  onDrop={(e) => void onDrop(e, col.id)}
                 >
                   <header className="kanban__head">
                     <h2>{col.label}</h2>
                     <span>{col.tasks.length}</span>
                   </header>
-                  <ul className="kanban__list">
-                    {col.tasks.map((task) => {
+                  <ul
+                    className="kanban__list"
+                    onDragOver={(e) => onListDragOver(e, col.id)}
+                    onDragLeave={onListDragLeave}
+                    onDrop={(e) => void onListDrop(e, col.id)}
+                  >
+                    {col.tasks.map((task, index) => {
                       const proj = studio.projects.find(
                         (p) => p.id === task.projectId,
                       )
@@ -626,13 +700,25 @@ function App() {
                           (a) => a.id === task.area,
                         )?.label ?? task.area
                       const who = studio.profileName(task.assigneeId)
+                      const showBefore =
+                        dragOverCol === col.id &&
+                        dropIndex === index &&
+                        draggingId !== task.id
                       return (
                         <li
                           key={task.id}
-                          className="kcard kcard--mini"
+                          data-task-id={task.id}
+                          className={`kcard kcard--mini${showBefore ? ' is-drop-before' : ''}${draggingId === task.id ? ' is-dragging' : ''}`}
                           draggable
                           onDragStart={(e) => onDragStart(e, task.id)}
-                          onClick={() => setEditingTask(task)}
+                          onDragEnd={onDragEnd}
+                          onClick={() => {
+                            if (didDrag.current) {
+                              didDrag.current = false
+                              return
+                            }
+                            setEditingTask(task)
+                          }}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => {
@@ -672,6 +758,10 @@ function App() {
                         </li>
                       )
                     })}
+                    {dragOverCol === col.id &&
+                      dropIndex === col.tasks.length && (
+                        <li className="kanban__gap" aria-hidden />
+                      )}
                   </ul>
                 </section>
               ))}

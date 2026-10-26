@@ -85,6 +85,8 @@ export interface FinanceEntry {
   entryDate: string
   category?: string
   notes?: string
+  /** If true, amount is applied every month in the 10-month forecast */
+  recurring: boolean
   createdAt: string
 }
 
@@ -120,6 +122,7 @@ export interface Task {
   createdAt: string
   dueDate?: string
   notes?: string
+  sortOrder: number
   createdBy?: string | null
 }
 

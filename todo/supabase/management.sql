@@ -40,6 +40,7 @@ create table if not exists public.finance_entries (
   entry_date date not null default current_date,
   category text,
   notes text,
+  recurring boolean not null default false,
   created_at timestamptz not null default now(),
   created_by uuid references public.profiles (id) on delete set null
 );

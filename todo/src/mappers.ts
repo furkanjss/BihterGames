@@ -49,6 +49,7 @@ export function mapTask(row: Record<string, unknown>): Task {
     createdAt: String(row.created_at ?? ''),
     dueDate: row.due_date ? String(row.due_date) : undefined,
     notes: row.notes ? String(row.notes) : undefined,
+    sortOrder: Number(row.sort_order ?? 0),
     createdBy: row.created_by ? String(row.created_by) : null,
   }
 }
@@ -95,6 +96,7 @@ export function mapFinanceEntry(row: Record<string, unknown>): FinanceEntry {
     entryDate: String(row.entry_date ?? ''),
     category: row.category ? String(row.category) : undefined,
     notes: row.notes ? String(row.notes) : undefined,
+    recurring: Boolean(row.recurring),
     createdAt: String(row.created_at ?? ''),
   }
 }

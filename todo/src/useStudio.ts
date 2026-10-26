@@ -66,7 +66,11 @@ export function useStudio(userId: string | undefined) {
     setError(null)
     const [pRes, tRes, dRes, prRes, iRes, lRes, fRes] = await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: true }),
-      supabase.from('tasks').select('*').order('created_at', { ascending: false }),
+      supabase
+        .from('tasks')
+        .select('*')
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false }),
       supabase.from('documents').select('*').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('display_name', { ascending: true }),
       supabase.from('ideas').select('*').order('created_at', { ascending: false }),
@@ -243,6 +247,10 @@ export function useStudio(userId: string | undefined) {
       if (!supabase || !userId) return
       const projectId = input.projectId || activeProjectId
       if (!projectId || !input.title.trim()) return
+      const status = input.status ?? 'todo'
+      const minOrder = tasks
+        .filter((t) => t.status === status)
+        .reduce((m, t) => Math.min(m, t.sortOrder), 0)
       const { data, error: err } = await supabase
         .from('tasks')
         .insert({
@@ -250,10 +258,11 @@ export function useStudio(userId: string | undefined) {
           title: input.title.trim(),
           area: input.area,
           priority: input.priority,
-          status: input.status ?? 'todo',
+          status,
           assignee_id: input.assigneeId ?? null,
           due_date: input.dueDate || null,
           notes: input.notes || null,
+          sort_order: minOrder - 1,
           created_by: userId,
         })
         .select('*')
@@ -265,7 +274,7 @@ export function useStudio(userId: string | undefined) {
       const task = mapTask(data as Record<string, unknown>)
       setTasks((prev) => [task, ...prev])
     },
-    [userId, activeProjectId],
+    [userId, activeProjectId, tasks],
   )
 
   const addTasksBulk = useCallback(
@@ -331,6 +340,7 @@ export function useStudio(userId: string | undefined) {
         dueDate: string | null
         notes: string | null
         projectId: string
+        sortOrder: number
       }>,
     ) => {
       if (!supabase) return
@@ -343,6 +353,7 @@ export function useStudio(userId: string | undefined) {
       if (patch.dueDate !== undefined) row.due_date = patch.dueDate
       if (patch.notes !== undefined) row.notes = patch.notes
       if (patch.projectId !== undefined) row.project_id = patch.projectId
+      if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder
 
       const { data, error: err } = await supabase
         .from('tasks')
@@ -358,6 +369,86 @@ export function useStudio(userId: string | undefined) {
       setTasks((prev) => prev.map((t) => (t.id === id ? mapped : t)))
     },
     [],
+  )
+
+  /**
+   * Move task into toStatus at toIndex within the visible column order.
+   * visibleIds = board column task ids in current display order (may include id).
+   */
+  const moveTask = useCallback(
+    async (
+      id: string,
+      toStatus: TaskStatus,
+      toIndex: number,
+      visibleIds: string[],
+    ) => {
+      const client = supabase
+      if (!client) return
+      const moving = tasks.find((t) => t.id === id)
+      if (!moving) return
+
+      const without = visibleIds.filter((vid) => vid !== id)
+      const clamped = Math.max(0, Math.min(toIndex, without.length))
+      const visibleOrder = [...without]
+      visibleOrder.splice(clamped, 0, id)
+
+      const visibleSet = new Set(visibleOrder)
+      const hiddenInTarget = tasks
+        .filter(
+          (t) =>
+            t.status === toStatus && t.id !== id && !visibleSet.has(t.id),
+        )
+        .slice()
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((t) => t.id)
+
+      const targetOrder = [...visibleOrder, ...hiddenInTarget]
+
+      const updates: { id: string; status: TaskStatus; sortOrder: number }[] =
+        targetOrder.map((tid, i) => ({
+          id: tid,
+          status: toStatus,
+          sortOrder: i,
+        }))
+
+      if (moving.status !== toStatus) {
+        const oldRemaining = tasks
+          .filter((t) => t.status === moving.status && t.id !== id)
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+        oldRemaining.forEach((t, i) => {
+          updates.push({
+            id: t.id,
+            status: moving.status,
+            sortOrder: i,
+          })
+        })
+      }
+
+      const byId = new Map(updates.map((u) => [u.id, u]))
+      setTasks((prev) =>
+        prev.map((t) => {
+          const u = byId.get(t.id)
+          return u ? { ...t, status: u.status, sortOrder: u.sortOrder } : t
+        }),
+      )
+
+      const results = await Promise.all(
+        updates.map(async (u) => {
+          const { error: err } = await client
+            .from('tasks')
+            .update({ status: u.status, sort_order: u.sortOrder })
+            .eq('id', u.id)
+          return err
+        }),
+      )
+      const failed = results.find((err) => err != null)
+      if (failed) {
+        setError(failed.message || 'Sıra kaydedilemedi')
+        await refresh()
+      }
+    },
+    [tasks, refresh],
   )
 
   const deleteTask = useCallback(async (id: string) => {
@@ -482,6 +573,7 @@ export function useStudio(userId: string | undefined) {
       category?: string
       notes?: string
       currency?: string
+      recurring?: boolean
     }) => {
       if (!supabase || !userId || !input.label.trim() || input.amount < 0) return
       const { data, error: err } = await supabase
@@ -494,6 +586,7 @@ export function useStudio(userId: string | undefined) {
           entry_date: input.entryDate,
           category: input.category || null,
           notes: input.notes || null,
+          recurring: Boolean(input.recurring),
           created_by: userId,
         })
         .select('*')
@@ -552,6 +645,7 @@ export function useStudio(userId: string | undefined) {
     addTask,
     addTasksBulk,
     updateTask,
+    moveTask,
     deleteTask,
     addDocument,
     deleteDocument,

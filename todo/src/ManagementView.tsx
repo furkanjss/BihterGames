@@ -8,6 +8,25 @@ import {
 } from './types'
 
 const money = formatMoney
+const FORECAST_MONTHS = 10
+
+const monthLabel = new Intl.DateTimeFormat('tr-TR', {
+  month: 'short',
+  year: 'numeric',
+})
+
+/** One line per type+label so re-logging the same payroll doesn't double the forecast */
+function uniqueRecurring(entries: FinanceEntry[]): FinanceEntry[] {
+  const map = new Map<string, FinanceEntry>()
+  const sorted = entries
+    .filter((e) => e.recurring)
+    .slice()
+    .sort((a, b) => a.entryDate.localeCompare(b.entryDate))
+  for (const e of sorted) {
+    map.set(`${e.entryType}:${e.label.trim().toLowerCase()}`, e)
+  }
+  return [...map.values()]
+}
 
 export function ManagementView({
   finance,
@@ -22,6 +41,7 @@ export function ManagementView({
     entryDate: string
     category?: string
     notes?: string
+    recurring?: boolean
   }) => Promise<void> | void
   onDelete: (id: string) => Promise<void> | void
 }) {
@@ -33,6 +53,7 @@ export function ManagementView({
   )
   const [category, setCategory] = useState('')
   const [notes, setNotes] = useState('')
+  const [recurring, setRecurring] = useState(false)
   const [monthFilter, setMonthFilter] = useState<'all' | string>('all')
 
   const totals = useMemo(() => {
@@ -51,6 +72,40 @@ export function ManagementView({
       balance: income - expense - payroll,
     }
   }, [finance])
+
+  const recurringLines = useMemo(() => uniqueRecurring(finance), [finance])
+
+  const monthlyDelta = useMemo(() => {
+    let income = 0
+    let out = 0
+    for (const e of recurringLines) {
+      if (e.entryType === 'income') income += e.amount
+      else out += e.amount
+    }
+    return { income, out, net: income - out }
+  }, [recurringLines])
+
+  const forecast = useMemo(() => {
+    const now = new Date()
+    let bal = totals.balance
+    const rows: {
+      key: string
+      label: string
+      balance: number
+      delta: number
+    }[] = []
+    for (let i = 1; i <= FORECAST_MONTHS; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+      bal += monthlyDelta.net
+      rows.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: monthLabel.format(d),
+        balance: bal,
+        delta: monthlyDelta.net,
+      })
+    }
+    return rows
+  }, [totals.balance, monthlyDelta.net])
 
   const months = useMemo(() => {
     const set = new Set(finance.map((e) => e.entryDate.slice(0, 7)))
@@ -95,10 +150,12 @@ export function ManagementView({
       entryDate,
       category: category || undefined,
       notes: notes || undefined,
+      recurring,
     })
     setLabel('')
     setAmount('')
     setNotes('')
+    setRecurring(false)
   }
 
   return (
@@ -112,6 +169,7 @@ export function ManagementView({
 
       <p className="pad muted">
         Sadece sen görürsün. Gelir / gider / maaş kayıtları ana bakiyeden düşer.
+        Tekrarlayan kalemler 10 aylık öngörüye işler.
       </p>
 
       <section className="mgmt__stats">
@@ -140,6 +198,7 @@ export function ManagementView({
           <select
             value={entryType}
             onChange={(e) => setEntryType(e.target.value as FinanceEntryType)}
+            aria-label="Tür"
           >
             {FINANCE_TYPES.map((t) => (
               <option key={t.id} value={t.id}>
@@ -147,6 +206,18 @@ export function ManagementView({
               </option>
             ))}
           </select>
+          <label className="mgmt__amount">
+            <span>₺</span>
+            <input
+              value={amount}
+              onChange={(e) => setAmount(formatMoneyInput(e.target.value))}
+              placeholder="1.000.000"
+              inputMode="numeric"
+              autoComplete="off"
+              aria-label="Tutar"
+              required
+            />
+          </label>
           <input
             className="composer__grow"
             value={label}
@@ -161,13 +232,6 @@ export function ManagementView({
             required
           />
           <input
-            value={amount}
-            onChange={(e) => setAmount(formatMoneyInput(e.target.value))}
-            placeholder="örn. 100.000.000"
-            inputMode="numeric"
-            required
-          />
-          <input
             type="date"
             value={entryDate}
             onChange={(e) => setEntryDate(e.target.value)}
@@ -176,6 +240,7 @@ export function ManagementView({
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            aria-label="Kategori"
           >
             <option value="">Kategori</option>
             {FINANCE_CATEGORIES.map((c) => (
@@ -188,13 +253,74 @@ export function ManagementView({
             Ekle
           </button>
         </div>
-        <input
-          className="composer__title"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Not (opsiyonel)"
-        />
+        <div className="mgmt__form-extra">
+          <label className="mgmt__check">
+            <input
+              type="checkbox"
+              checked={recurring}
+              onChange={(e) => setRecurring(e.target.checked)}
+            />
+            <span>Tekrarlayan (her ay)</span>
+          </label>
+          <input
+            className="composer__title"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Not (opsiyonel)"
+          />
+        </div>
       </form>
+
+      <section className="dash-section mgmt__forecast">
+        <h2>10 aylık öngörü</h2>
+        <p className="muted pad-inline">
+          Mevcut bakiyeden başlar. İşaretli tekrarlayan kalemler her ay
+          uygulanır.
+          {recurringLines.length === 0
+            ? ' Henüz tekrarlayan kalem yok.'
+            : ` Aylık net: ${monthlyDelta.net >= 0 ? '+' : ''}${money(monthlyDelta.net)} (gelir ${money(monthlyDelta.income)} · gider ${money(monthlyDelta.out)}).`}
+        </p>
+
+        {recurringLines.length > 0 && (
+          <ul className="mgmt__recurring">
+            {recurringLines.map((e) => (
+              <li key={e.id}>
+                <span className={`mgmt__type mgmt__type--${e.entryType}`}>
+                  {FINANCE_TYPES.find((t) => t.id === e.entryType)?.label}
+                </span>
+                {e.label}
+                <strong className={e.entryType === 'income' ? 'pos' : 'neg'}>
+                  {e.entryType === 'income' ? '+' : '−'}
+                  {money(e.amount)}
+                  <span className="muted"> / ay</span>
+                </strong>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mgmt__forecast-grid">
+          <article className="mgmt__forecast-row mgmt__forecast-row--now">
+            <strong>Şimdi</strong>
+            <span className="muted">başlangıç</span>
+            <strong className={totals.balance >= 0 ? 'pos' : 'neg'}>
+              {money(totals.balance)}
+            </strong>
+          </article>
+          {forecast.map((row) => (
+            <article key={row.key} className="mgmt__forecast-row">
+              <strong>{row.label}</strong>
+              <span className={row.delta >= 0 ? 'pos' : 'neg'}>
+                {row.delta >= 0 ? '+' : ''}
+                {money(row.delta)}
+              </span>
+              <strong className={row.balance >= 0 ? 'pos' : 'neg'}>
+                {money(row.balance)}
+              </strong>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="dash-section">
         <h2>Aylık özet</h2>
@@ -239,6 +365,11 @@ export function ManagementView({
                   {FINANCE_TYPES.find((t) => t.id === e.entryType)?.label}
                 </span>{' '}
                 {e.label}
+                {e.recurring && (
+                  <span className="mgmt__badge" title="Her ay tekrarlar">
+                    tekrarlayan
+                  </span>
+                )}
               </p>
               <p className="muted">
                 {e.entryDate}
@@ -246,9 +377,7 @@ export function ManagementView({
                 {e.notes ? ` · ${e.notes}` : ''}
               </p>
             </div>
-            <strong
-              className={e.entryType === 'income' ? 'pos' : 'neg'}
-            >
+            <strong className={e.entryType === 'income' ? 'pos' : 'neg'}>
               {e.entryType === 'income' ? '+' : '-'}
               {money(e.amount, e.currency)}
             </strong>
