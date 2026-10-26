@@ -64,10 +64,12 @@ export function TaskModal({
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!form || !form.title.trim()) return
+    if (!task || !form || !form.title.trim()) return
+    const id = task.id
+    const payload = form
     setBusy(true)
     try {
-      await onSave(task.id, form)
+      await onSave(id, payload)
       onClose()
     } finally {
       setBusy(false)
