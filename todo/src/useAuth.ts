@@ -81,15 +81,32 @@ export function useAuth() {
       return false
     }
     setError(null)
-    const { error: err } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (err) {
-      setError(err.message)
+    try {
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (err) {
+        const msg = err.message || 'Giriş başarısız'
+        if (/failed to fetch|networkerror|fetch/i.test(msg)) {
+          setError(
+            'Supabase’e ulaşılamadı. Project URL + anon (eyJ…) key doğru mu? Proje pause’ta mı? Auth → URL’lerde bihtergames.com var mı?',
+          )
+        } else {
+          setError(msg)
+        }
+        return false
+      }
+      return true
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Bilinmeyen hata'
+      setError(
+        /failed to fetch|networkerror/i.test(msg)
+          ? 'Supabase’e ulaşılamadı (Failed to fetch). Dashboard’da proje açık mı, API URL/anon key doğru mu kontrol et.'
+          : msg,
+      )
       return false
     }
-    return true
   }, [])
 
   const signOut = useCallback(async () => {
