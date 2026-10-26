@@ -516,6 +516,26 @@
   gap: 0.55rem;
 }
 
+.bulk__label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bulk__label select {
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.9rem;
+  color: var(--snow);
+}
+
 .bulk__hint {
   font-size: 0.85rem;
   color: var(--muted);

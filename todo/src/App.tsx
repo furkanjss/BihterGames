@@ -37,6 +37,7 @@ function App() {
   const [ideaBody, setIdeaBody] = useState('')
   const [bulkOpen, setBulkOpen] = useState(false)
   const [bulkText, setBulkText] = useState('')
+  const [bulkProjectId, setBulkProjectId] = useState('')
   const [nameDraft, setNameDraft] = useState('')
   const [editingName, setEditingName] = useState(false)
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null)
@@ -140,20 +141,34 @@ function App() {
 
   async function submitBulk() {
     const projectId =
-      projectFilter === 'all' ? studio.activeProjectId : projectFilter
+      bulkProjectId ||
+      (projectFilter !== 'all' ? projectFilter : '') ||
+      studio.activeProjectId
     if (!projectId) {
-      alert('Önce bir proje seç.')
+      alert('Toplu eklemek için bir proje seç.')
       return
     }
     const lines = bulkText
       .split(/\r?\n/)
-      .map((l) => l.trim())
+      .map((l) => l.replace(/^[-*•]\s+/, '').trim())
       .filter(Boolean)
       .map((t) => ({ title: t, area, priority }))
+    if (lines.length === 0) {
+      alert('Her satıra bir görev yaz.')
+      return
+    }
     const n = await studio.addTasksBulk(projectId, lines)
     if (n > 0) {
       setBulkText('')
       setBulkOpen(false)
+      setProjectFilter(projectId)
+      studio.setActiveProjectId(projectId)
+      alert(`${n} görev eklendi.`)
+    } else {
+      alert(
+        studio.error ||
+          'Görevler eklenemedi. Proje seçili mi ve Supabase bağlantısı var mı kontrol et.',
+      )
     }
   }
 
@@ -222,9 +237,6 @@ function App() {
 
   const gameProjects = studio.projects.filter((p) => p.kind === 'game')
   const otherProjects = studio.projects.filter((p) => p.kind !== 'game')
-  const bulkTargetId =
-    projectFilter === 'all' ? studio.activeProjectId : projectFilter
-
   async function submitIdea(e: FormEvent) {
     e.preventDefault()
     if (!ideaTitle.trim()) return
@@ -504,7 +516,21 @@ function App() {
                 <button
                   type="button"
                   className={`pill ${bulkOpen ? 'is-active' : ''}`}
-                  onClick={() => setBulkOpen((v) => !v)}
+                  onClick={() => {
+                    setBulkOpen((v) => !v)
+                    if (
+                      !bulkProjectId &&
+                      (projectFilter !== 'all'
+                        ? projectFilter
+                        : studio.activeProjectId)
+                    ) {
+                      setBulkProjectId(
+                        projectFilter !== 'all'
+                          ? projectFilter
+                          : studio.activeProjectId,
+                      )
+                    }
+                  }}
                 >
                   Toplu ekle
                 </button>
@@ -593,12 +619,22 @@ function App() {
 
             {bulkOpen && (
               <section className="bulk">
+                <label className="bulk__label">
+                  Proje
+                  <select
+                    value={bulkProjectId}
+                    onChange={(e) => setBulkProjectId(e.target.value)}
+                  >
+                    <option value="">Proje seç…</option>
+                    {studio.projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <p className="bulk__hint">
-                  Her satır bir görev. Hedef proje:{' '}
-                  <strong>
-                    {studio.projects.find((p) => p.id === bulkTargetId)?.name ||
-                      'seçilmedi'}
-                  </strong>
+                  Her satır = bir görev. Madde işaretleri otomatik temizlenir.
                 </p>
                 <textarea
                   value={bulkText}
@@ -611,7 +647,6 @@ function App() {
                     type="button"
                     className="btn btn--lime btn--sm"
                     onClick={() => void submitBulk()}
-                    disabled={!bulkTargetId}
                   >
                     Satırları ekle
                   </button>
