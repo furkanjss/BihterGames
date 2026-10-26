@@ -115,6 +115,34 @@ export function useAuth() {
     setProfile(null)
   }, [])
 
+  const updateDisplayName = useCallback(
+    async (name: string) => {
+      if (!supabase || !session?.user) {
+        setError('Oturum yok.')
+        return false
+      }
+      const trimmed = name.trim()
+      if (!trimmed) {
+        setError('İsim boş olamaz.')
+        return false
+      }
+      setError(null)
+      const { data, error: err } = await supabase
+        .from('profiles')
+        .update({ display_name: trimmed })
+        .eq('id', session.user.id)
+        .select('*')
+        .single()
+      if (err) {
+        setError(err.message)
+        return false
+      }
+      setProfile(mapProfile(data as Record<string, unknown>))
+      return true
+    },
+    [session?.user],
+  )
+
   return {
     configured: isSupabaseConfigured,
     session,
@@ -125,5 +153,6 @@ export function useAuth() {
     setError,
     signIn,
     signOut,
+    updateDisplayName,
   }
 }

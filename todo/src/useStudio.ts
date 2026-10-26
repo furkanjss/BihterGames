@@ -111,8 +111,8 @@ export function useStudio(userId: string | undefined) {
   )
 
   const addProject = useCallback(
-    async (input: ProjectInput) => {
-      if (!supabase || !userId) return
+    async (input: ProjectInput): Promise<Project | null> => {
+      if (!supabase || !userId) return null
       const { data, error: err } = await supabase
         .from('projects')
         .insert({
@@ -132,11 +132,12 @@ export function useStudio(userId: string | undefined) {
         .single()
       if (err) {
         setError(err.message)
-        return
+        return null
       }
       const project = mapProject(data as Record<string, unknown>)
       setProjects((prev) => [...prev, project])
       setActiveProjectId(project.id)
+      return project
     },
     [userId],
   )
@@ -219,6 +220,40 @@ export function useStudio(userId: string | undefined) {
       setTasks((prev) => [task, ...prev])
     },
     [userId, activeProjectId],
+  )
+
+  const addTasksBulk = useCallback(
+    async (
+      projectId: string,
+      lines: { title: string; area?: GameArea; priority?: Priority }[],
+    ) => {
+      if (!supabase || !userId || !projectId || lines.length === 0) return 0
+      const rows = lines
+        .map((l) => ({
+          project_id: projectId,
+          title: l.title.trim(),
+          area: l.area ?? 'design',
+          priority: l.priority ?? 'medium',
+          status: 'todo' as const,
+          created_by: userId,
+        }))
+        .filter((r) => r.title)
+      if (rows.length === 0) return 0
+      const { data, error: err } = await supabase
+        .from('tasks')
+        .insert(rows)
+        .select('*')
+      if (err) {
+        setError(err.message)
+        return 0
+      }
+      const mapped = (data ?? []).map((r) =>
+        mapTask(r as Record<string, unknown>),
+      )
+      setTasks((prev) => [...mapped, ...prev])
+      return mapped.length
+    },
+    [userId],
   )
 
   const updateTask = useCallback(
@@ -327,6 +362,7 @@ export function useStudio(userId: string | undefined) {
     updateProject,
     deleteProject,
     addTask,
+    addTasksBulk,
     updateTask,
     deleteTask,
     addDocument,

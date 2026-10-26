@@ -1,7 +1,8 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type DragEvent, type FormEvent } from 'react'
 import './App.css'
 import { LoginView } from './LoginView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
+import { BLIND_TAXI_TASKS } from './taskTemplates'
 import {
   GAME_AREAS,
   PERSONAL_AREA,
@@ -31,6 +32,11 @@ function App() {
   const [dueDate, setDueDate] = useState('')
   const [docTitle, setDocTitle] = useState('')
   const [docUrl, setDocUrl] = useState('')
+  const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkText, setBulkText] = useState('')
+  const [nameDraft, setNameDraft] = useState('')
+  const [editingName, setEditingName] = useState(false)
+  const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [modalKind, setModalKind] = useState<ProjectKind>('game')
@@ -129,8 +135,89 @@ function App() {
     setDocUrl('')
   }
 
+  async function submitBulk() {
+    const projectId =
+      projectFilter === 'all' ? studio.activeProjectId : projectFilter
+    if (!projectId) {
+      alert('Önce bir proje seç.')
+      return
+    }
+    const lines = bulkText
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((t) => ({ title: t, area, priority }))
+    const n = await studio.addTasksBulk(projectId, lines)
+    if (n > 0) {
+      setBulkText('')
+      setBulkOpen(false)
+    }
+  }
+
+  async function seedBlindTaxi() {
+    let project = studio.projects.find((p) =>
+      p.name.toLowerCase().includes('blind taxi'),
+    )
+    if (!project) {
+      project = await studio.addProject({
+        name: 'Blind Taxi',
+        kind: 'game',
+        status: 'preprod',
+        engine: 'Unity',
+        platforms: ['PC', 'Steam'],
+        description: 'Blind Taxi production board',
+      })
+    }
+    if (!project) return
+    const existing = new Set(
+      studio.tasks
+        .filter((t) => t.projectId === project!.id)
+        .map((t) => t.title),
+    )
+    const missing = BLIND_TAXI_TASKS.filter((t) => !existing.has(t.title))
+    if (missing.length === 0) {
+      alert('Blind Taxi şablon görevleri zaten var.')
+      setProjectFilter(project.id)
+      studio.setActiveProjectId(project.id)
+      return
+    }
+    const n = await studio.addTasksBulk(project.id, missing)
+    setProjectFilter(project.id)
+    studio.setActiveProjectId(project.id)
+    if (n > 0) alert(`${n} Blind Taxi görevi eklendi.`)
+  }
+
+  function onDragStart(e: DragEvent, taskId: string) {
+    e.dataTransfer.setData('text/task-id', taskId)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function onDragOver(e: DragEvent, status: TaskStatus) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverCol(status)
+  }
+
+  async function onDrop(e: DragEvent, status: TaskStatus) {
+    e.preventDefault()
+    setDragOverCol(null)
+    const id = e.dataTransfer.getData('text/task-id')
+    if (!id) return
+    await studio.updateTask(id, { status })
+  }
+
+  async function saveName() {
+    const ok = await auth.updateDisplayName(nameDraft)
+    if (ok) {
+      setEditingName(false)
+      await studio.refresh()
+    }
+  }
+
   const gameProjects = studio.projects.filter((p) => p.kind === 'game')
   const otherProjects = studio.projects.filter((p) => p.kind !== 'game')
+  const bulkTargetId =
+    projectFilter === 'all' ? studio.activeProjectId : projectFilter
 
   return (
     <div className="app">
@@ -232,9 +319,44 @@ function App() {
         )}
 
         <div className="sidebar__foot">
-          <p className="sidebar__user">
-            {auth.profile?.displayName || auth.user?.email}
-          </p>
+          {editingName ? (
+            <div className="name-edit">
+              <input
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                placeholder="Görünen ad"
+                aria-label="Görünen ad"
+              />
+              <div className="name-edit__row">
+                <button type="button" className="btn btn--lime btn--sm" onClick={() => void saveName()}>
+                  Kaydet
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => setEditingName(false)}
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="sidebar__user">
+                {auth.profile?.displayName || auth.user?.email}
+              </p>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => {
+                  setNameDraft(auth.profile?.displayName || '')
+                  setEditingName(true)
+                }}
+              >
+                İsmi değiştir
+              </button>
+            </>
+          )}
           <button type="button" className="btn btn--ghost btn--sm" onClick={auth.signOut}>
             Çıkış
           </button>
@@ -363,6 +485,21 @@ function App() {
                 >
                   Bana atanan
                 </button>
+                <button
+                  type="button"
+                  className={`pill ${bulkOpen ? 'is-active' : ''}`}
+                  onClick={() => setBulkOpen((v) => !v)}
+                >
+                  Toplu ekle
+                </button>
+                <button
+                  type="button"
+                  className="pill"
+                  onClick={() => void seedBlindTaxi()}
+                  title="Blind Taxi şablon görevlerini ekle"
+                >
+                  Blind Taxi şablon
+                </button>
               </div>
             </header>
 
@@ -383,15 +520,17 @@ function App() {
                   </option>
                 ))}
               </select>
+              <span className="muted filters__hint">
+                Kartları sürükleyip sütunlara bırak
+              </span>
             </div>
 
-            <form className="composer" onSubmit={submitTask}>
+            <form className="composer composer--compact" onSubmit={submitTask}>
               <input
                 className="composer__title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Yeni görev…"
-                required
+                placeholder="Tek görev…"
               />
               <div className="composer__row">
                 <select
@@ -421,7 +560,7 @@ function App() {
                   <option value="">Atanmamış</option>
                   {studio.profiles.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.displayName}
+                      {p.displayName || p.id.slice(0, 6)}
                     </option>
                   ))}
                 </select>
@@ -430,15 +569,56 @@ function App() {
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                 />
-                <button type="submit" className="btn btn--lime">
+                <button type="submit" className="btn btn--lime btn--sm">
                   Ekle
                 </button>
               </div>
             </form>
 
+            {bulkOpen && (
+              <section className="bulk">
+                <p className="bulk__hint">
+                  Her satır bir görev. Hedef proje:{' '}
+                  <strong>
+                    {studio.projects.find((p) => p.id === bulkTargetId)?.name ||
+                      'seçilmedi'}
+                  </strong>
+                </p>
+                <textarea
+                  value={bulkText}
+                  onChange={(e) => setBulkText(e.target.value)}
+                  rows={8}
+                  placeholder={'GDD\nKarakter Tasarımı\nSteam Capsule Art\n…'}
+                />
+                <div className="composer__row">
+                  <button
+                    type="button"
+                    className="btn btn--lime btn--sm"
+                    onClick={() => void submitBulk()}
+                    disabled={!bulkTargetId}
+                  >
+                    Satırları ekle
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => setBulkOpen(false)}
+                  >
+                    Kapat
+                  </button>
+                </div>
+              </section>
+            )}
+
             <div className="kanban">
               {columns.map((col) => (
-                <section key={col.id} className="kanban__col">
+                <section
+                  key={col.id}
+                  className={`kanban__col ${dragOverCol === col.id ? 'is-drop' : ''}`}
+                  onDragOver={(e) => onDragOver(e, col.id)}
+                  onDragLeave={() => setDragOverCol(null)}
+                  onDrop={(e) => void onDrop(e, col.id)}
+                >
                   <header className="kanban__head">
                     <h2>{col.label}</h2>
                     <span>{col.tasks.length}</span>
@@ -452,53 +632,40 @@ function App() {
                         [...GAME_AREAS, PERSONAL_AREA].find(
                           (a) => a.id === task.area,
                         )?.label ?? task.area
+                      const who = studio.profileName(task.assigneeId)
                       return (
-                        <li key={task.id} className="kcard">
-                          <p className="kcard__title">{task.title}</p>
+                        <li
+                          key={task.id}
+                          className="kcard kcard--mini"
+                          draggable
+                          onDragStart={(e) => onDragStart(e, task.id)}
+                        >
+                          <div className="kcard__row">
+                            <p className="kcard__title">{task.title}</p>
+                            <button
+                              type="button"
+                              className="kcard__x"
+                              aria-label="Sil"
+                              onClick={() => void studio.deleteTask(task.id)}
+                            >
+                              ×
+                            </button>
+                          </div>
                           <div className="kcard__meta">
-                            <span className="tag">{proj?.name}</span>
+                            {projectFilter === 'all' && (
+                              <span className="tag">{proj?.name}</span>
+                            )}
                             <span className="tag">{areaLabel}</span>
                             <span className={`prio prio--${task.priority}`}>
-                              {
-                                PRIORITIES.find((p) => p.id === task.priority)
-                                  ?.label
-                              }
+                              {task.priority === 'high'
+                                ? 'H'
+                                : task.priority === 'medium'
+                                  ? 'M'
+                                  : 'L'}
                             </span>
-                          </div>
-                          <div className="kcard__foot">
-                            <span className="kcard__who">
-                              {studio.profileName(task.assigneeId)}
-                            </span>
-                            <div className="kcard__moves">
-                              {TASK_STATUSES.filter((s) => s.id !== task.status).map(
-                                (s) => (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    className="chip"
-                                    title={s.label}
-                                    onClick={() =>
-                                      void studio.updateTask(task.id, {
-                                        status: s.id as TaskStatus,
-                                      })
-                                    }
-                                  >
-                                    {s.id === 'todo'
-                                      ? 'Todo'
-                                      : s.id === 'doing'
-                                        ? 'Doing'
-                                        : 'Done'}
-                                  </button>
-                                ),
-                              )}
-                              <button
-                                type="button"
-                                className="chip chip--danger"
-                                onClick={() => void studio.deleteTask(task.id)}
-                              >
-                                Sil
-                              </button>
-                            </div>
+                            {task.assigneeId && (
+                              <span className="kcard__who">{who}</span>
+                            )}
                           </div>
                         </li>
                       )

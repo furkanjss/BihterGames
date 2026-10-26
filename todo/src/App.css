@@ -252,6 +252,25 @@
   color: var(--muted);
 }
 
+.name-edit {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.name-edit input {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  font-size: 0.85rem;
+}
+
+.name-edit__row {
+  display: flex;
+  gap: 0.35rem;
+}
+
 /* Main */
 .main {
   overflow: auto;
@@ -469,8 +488,48 @@
 .filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.65rem;
-  padding: 0 1.5rem 1rem;
+  padding: 0 1.5rem 0.75rem;
+}
+
+.filters__hint {
+  font-size: 0.78rem;
+}
+
+.composer--compact {
+  padding-bottom: 0.75rem;
+}
+
+.composer--compact .composer__title {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.92rem;
+}
+
+.bulk {
+  margin: 0 1.5rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: var(--panel);
+  display: grid;
+  gap: 0.55rem;
+}
+
+.bulk__hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.bulk textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  resize: vertical;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .filters select,
@@ -526,6 +585,15 @@
   border-radius: 1rem;
   background: rgba(16, 16, 16, 0.8);
   min-height: 280px;
+  max-height: calc(100svh - 280px);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.kanban__col.is-drop {
+  border-color: rgba(217, 255, 58, 0.55);
+  background: rgba(217, 255, 58, 0.06);
 }
 
 .kanban__head {
@@ -552,8 +620,10 @@
 .kanban__list {
   list-style: none;
   display: grid;
-  gap: 0.55rem;
-  padding: 0.75rem;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  overflow: auto;
+  flex: 1;
 }
 
 .kcard {
@@ -565,25 +635,63 @@
   gap: 0.55rem;
 }
 
+.kcard--mini {
+  padding: 0.45rem 0.55rem;
+  gap: 0.25rem;
+  cursor: grab;
+  border-radius: 0.5rem;
+}
+
+.kcard--mini:active {
+  cursor: grabbing;
+}
+
+.kcard__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
 .kcard__title {
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.3;
+  font-size: 0.88rem;
+  flex: 1;
+}
+
+.kcard__x {
+  color: var(--muted);
+  line-height: 1;
+  font-size: 1rem;
+  padding: 0 0.15rem;
+  opacity: 0.5;
+}
+
+.kcard__x:hover {
+  opacity: 1;
+  color: var(--danger);
 }
 
 .kcard__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.kcard--mini .tag {
+  padding: 0.1rem 0.35rem;
+  font-size: 0.65rem;
+}
+
+.kcard__who {
+  font-size: 0.7rem;
+  color: var(--muted);
 }
 
 .kcard__foot {
   display: grid;
   gap: 0.45rem;
-}
-
-.kcard__who {
-  font-size: 0.78rem;
-  color: var(--muted);
 }
 
 .kcard__moves {
