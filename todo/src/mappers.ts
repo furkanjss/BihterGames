@@ -1,4 +1,12 @@
-import type { Document, Idea, Profile, Project, Task } from './types'
+import type {
+  Document,
+  FinanceEntry,
+  Idea,
+  ImportantLink,
+  Profile,
+  Project,
+  Task,
+} from './types'
 
 export function mapProfile(row: Record<string, unknown>): Profile {
   return {
@@ -63,5 +71,30 @@ export function mapIdea(row: Record<string, unknown>): Idea {
     body: row.body ? String(row.body) : undefined,
     createdAt: String(row.created_at ?? ''),
     createdBy: row.created_by ? String(row.created_by) : null,
+  }
+}
+
+export function mapImportantLink(row: Record<string, unknown>): ImportantLink {
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    url: row.url ? String(row.url) : undefined,
+    body: row.body ? String(row.body) : undefined,
+    sortOrder: Number(row.sort_order ?? 0),
+    createdAt: String(row.created_at ?? ''),
+  }
+}
+
+export function mapFinanceEntry(row: Record<string, unknown>): FinanceEntry {
+  return {
+    id: String(row.id),
+    entryType: (row.entry_type as FinanceEntry['entryType']) ?? 'expense',
+    label: String(row.label),
+    amount: Number(row.amount ?? 0),
+    currency: String(row.currency ?? 'TRY'),
+    entryDate: String(row.entry_date ?? ''),
+    category: row.category ? String(row.category) : undefined,
+    notes: row.notes ? String(row.notes) : undefined,
+    createdAt: String(row.created_at ?? ''),
   }
 }

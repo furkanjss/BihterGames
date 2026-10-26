@@ -65,8 +65,49 @@ export interface Idea {
   createdBy?: string | null
 }
 
-/** Only this account sees / edits the Ideas inbox */
+export interface ImportantLink {
+  id: string
+  title: string
+  url?: string
+  body?: string
+  sortOrder: number
+  createdAt: string
+}
+
+export type FinanceEntryType = 'income' | 'expense' | 'payroll'
+
+export interface FinanceEntry {
+  id: string
+  entryType: FinanceEntryType
+  label: string
+  amount: number
+  currency: string
+  entryDate: string
+  category?: string
+  notes?: string
+  createdAt: string
+}
+
+/** Only this account sees Ideas + Yönetim */
 export const IDEAS_OWNER_EMAIL = 'info@bihtergames.com'
+export const OWNER_EMAIL = IDEAS_OWNER_EMAIL
+
+export const FINANCE_TYPES: { id: FinanceEntryType; label: string }[] = [
+  { id: 'income', label: 'Gelir' },
+  { id: 'expense', label: 'Gider' },
+  { id: 'payroll', label: 'Maaş / ödeme' },
+]
+
+export const FINANCE_CATEGORIES = [
+  'Yazılım',
+  'Donanım',
+  'Ofis',
+  'Pazarlama',
+  'Freelance',
+  'Maaş',
+  'Vergi',
+  'Diğer',
+] as const
 
 export interface Task {
   id: string

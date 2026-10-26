@@ -782,6 +782,161 @@
   gap: 0.4rem;
 }
 
+/* Links */
+.dash-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.links-list {
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.link-card {
+  padding: 0.9rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.link-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.link-card a,
+.link-card strong {
+  color: var(--lime);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link-card a:hover {
+  text-decoration: underline;
+}
+
+.link-card__body {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Management */
+.mgmt__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.mgmt__stats article {
+  padding: 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mgmt__stats span {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mgmt__stats strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.pos {
+  color: #9be15d;
+}
+.neg {
+  color: #ff8f8f;
+}
+
+.mgmt__form {
+  padding-bottom: 1.5rem;
+}
+
+.mgmt__months {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.mgmt__month {
+  display: grid;
+  grid-template-columns: 6rem 1fr 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 0.88rem;
+}
+
+.mgmt__month .muted {
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+}
+
+.mgmt__list {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0 1.5rem 2rem;
+}
+
+.mgmt__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.mgmt__type {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 0.35rem;
+}
+
+.mgmt__type--income {
+  color: #9be15d;
+}
+.mgmt__type--expense,
+.mgmt__type--payroll {
+  color: #ff8f8f;
+}
+
+@media (max-width: 960px) {
+  .mgmt__stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mgmt__month {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* Ideas */
 .ideas__lede {
   padding-top: 0;

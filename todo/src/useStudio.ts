@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   mapDocument,
+  mapFinanceEntry,
   mapIdea,
+  mapImportantLink,
   mapProfile,
   mapProject,
   mapTask,
@@ -9,8 +11,11 @@ import {
 import { supabase } from './supabase'
 import type {
   Document,
+  FinanceEntry,
+  FinanceEntryType,
   GameArea,
   Idea,
+  ImportantLink,
   Priority,
   Profile,
   Project,
@@ -49,6 +54,8 @@ export function useStudio(userId: string | undefined) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
   const [ideas, setIdeas] = useState<Idea[]>([])
+  const [links, setLinks] = useState<ImportantLink[]>([])
+  const [finance, setFinance] = useState<FinanceEntry[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [activeProjectId, setActiveProjectId] = useState('')
   const [ready, setReady] = useState(false)
@@ -57,12 +64,20 @@ export function useStudio(userId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!supabase || !userId) return
     setError(null)
-    const [pRes, tRes, dRes, prRes, iRes] = await Promise.all([
+    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes] = await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: true }),
       supabase.from('tasks').select('*').order('created_at', { ascending: false }),
       supabase.from('documents').select('*').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('display_name', { ascending: true }),
       supabase.from('ideas').select('*').order('created_at', { ascending: false }),
+      supabase
+        .from('important_links')
+        .select('*')
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('finance_entries')
+        .select('*')
+        .order('entry_date', { ascending: false }),
     ])
 
     if (pRes.error || tRes.error || dRes.error || prRes.error) {
@@ -75,11 +90,6 @@ export function useStudio(userId: string | undefined) {
       )
       setReady(true)
       return
-    }
-
-    // ideas may 404 until migration; or RLS empty for non-owner — ignore soft
-    if (iRes.error && !/permission|policy|does not exist|404/i.test(iRes.error.message)) {
-      // keep quiet for non-owners (RLS returns empty or error)
     }
 
     const nextProjects = (pRes.data ?? []).map((r) =>
@@ -98,6 +108,20 @@ export function useStudio(userId: string | undefined) {
         ? []
         : (iRes.data ?? []).map((r) => mapIdea(r as Record<string, unknown>)),
     )
+    setLinks(
+      lRes.error
+        ? []
+        : (lRes.data ?? []).map((r) =>
+            mapImportantLink(r as Record<string, unknown>),
+          ),
+    )
+    setFinance(
+      fRes.error
+        ? []
+        : (fRes.data ?? []).map((r) =>
+            mapFinanceEntry(r as Record<string, unknown>),
+          ),
+    )
     setActiveProjectId((prev) => prev || nextProjects[0]?.id || '')
     setReady(true)
   }, [userId])
@@ -108,6 +132,8 @@ export function useStudio(userId: string | undefined) {
       setTasks([])
       setDocuments([])
       setIdeas([])
+      setLinks([])
+      setFinance([])
       setProfiles([])
       setReady(false)
       return
@@ -408,6 +434,95 @@ export function useStudio(userId: string | undefined) {
     setIdeas((prev) => prev.filter((i) => i.id !== id))
   }, [])
 
+  const addLink = useCallback(
+    async (title: string, url?: string, body?: string) => {
+      if (!supabase || !userId || !title.trim()) return
+      const { data, error: err } = await supabase
+        .from('important_links')
+        .insert({
+          title: title.trim(),
+          url: url?.trim() || null,
+          body: body?.trim() || null,
+          sort_order: links.length,
+          created_by: userId,
+        })
+        .select('*')
+        .single()
+      if (err) {
+        setError(err.message)
+        return
+      }
+      setLinks((prev) => [
+        ...prev,
+        mapImportantLink(data as Record<string, unknown>),
+      ])
+    },
+    [userId, links.length],
+  )
+
+  const deleteLink = useCallback(async (id: string) => {
+    if (!supabase) return
+    const { error: err } = await supabase
+      .from('important_links')
+      .delete()
+      .eq('id', id)
+    if (err) {
+      setError(err.message)
+      return
+    }
+    setLinks((prev) => prev.filter((l) => l.id !== id))
+  }, [])
+
+  const addFinance = useCallback(
+    async (input: {
+      entryType: FinanceEntryType
+      label: string
+      amount: number
+      entryDate: string
+      category?: string
+      notes?: string
+      currency?: string
+    }) => {
+      if (!supabase || !userId || !input.label.trim() || input.amount < 0) return
+      const { data, error: err } = await supabase
+        .from('finance_entries')
+        .insert({
+          entry_type: input.entryType,
+          label: input.label.trim(),
+          amount: input.amount,
+          currency: input.currency ?? 'TRY',
+          entry_date: input.entryDate,
+          category: input.category || null,
+          notes: input.notes || null,
+          created_by: userId,
+        })
+        .select('*')
+        .single()
+      if (err) {
+        setError(err.message)
+        return
+      }
+      setFinance((prev) => [
+        mapFinanceEntry(data as Record<string, unknown>),
+        ...prev,
+      ])
+    },
+    [userId],
+  )
+
+  const deleteFinance = useCallback(async (id: string) => {
+    if (!supabase) return
+    const { error: err } = await supabase
+      .from('finance_entries')
+      .delete()
+      .eq('id', id)
+    if (err) {
+      setError(err.message)
+      return
+    }
+    setFinance((prev) => prev.filter((f) => f.id !== id))
+  }, [])
+
   const profileName = useCallback(
     (id: string | null | undefined) => {
       if (!id) return 'Atanmamış'
@@ -423,6 +538,8 @@ export function useStudio(userId: string | undefined) {
     tasks,
     documents,
     ideas,
+    links,
+    finance,
     profiles,
     activeProjectId,
     setActiveProjectId,
@@ -440,6 +557,10 @@ export function useStudio(userId: string | undefined) {
     deleteDocument,
     addIdea,
     deleteIdea,
+    addLink,
+    deleteLink,
+    addFinance,
+    deleteFinance,
     profileName,
     refresh,
   }

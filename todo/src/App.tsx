@@ -1,13 +1,13 @@
 import { useMemo, useState, type DragEvent, type FormEvent } from 'react'
 import './App.css'
 import { LoginView } from './LoginView'
+import { ManagementView } from './ManagementView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
 import { TaskModal, type TaskFormValue } from './TaskModal'
-import { BLIND_TAXI_TASKS } from './taskTemplates'
 import type { Task } from './types'
 import {
   GAME_AREAS,
-  IDEAS_OWNER_EMAIL,
+  OWNER_EMAIL,
   PERSONAL_AREA,
   PRIORITIES,
   PROJECT_STATUSES,
@@ -20,7 +20,7 @@ import {
 import { useAuth } from './useAuth'
 import { useStudio } from './useStudio'
 
-type View = 'dashboard' | 'tasks' | 'projects' | 'docs' | 'ideas'
+type View = 'dashboard' | 'tasks' | 'projects' | 'docs' | 'ideas' | 'management'
 
 function App() {
   const auth = useAuth()
@@ -37,11 +37,9 @@ function App() {
   const [docUrl, setDocUrl] = useState('')
   const [ideaTitle, setIdeaTitle] = useState('')
   const [ideaBody, setIdeaBody] = useState('')
-  const [bulkOpen, setBulkOpen] = useState(false)
-  const [bulkText, setBulkText] = useState('')
-  const [bulkProjectId, setBulkProjectId] = useState('')
-  const [bulkBusy, setBulkBusy] = useState(false)
-  const [bulkMsg, setBulkMsg] = useState<string | null>(null)
+  const [linkTitle, setLinkTitle] = useState('')
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkBody, setLinkBody] = useState('')
   const [nameDraft, setNameDraft] = useState('')
   const [editingName, setEditingName] = useState(false)
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null)
@@ -144,75 +142,6 @@ function App() {
     setDocUrl('')
   }
 
-  async function submitBulk() {
-    setBulkMsg(null)
-    const projectId =
-      bulkProjectId ||
-      (projectFilter !== 'all' ? projectFilter : '') ||
-      studio.activeProjectId
-    if (!projectId) {
-      setBulkMsg('Toplu eklemek için bir proje seç.')
-      return
-    }
-    const lines = bulkText
-      .split(/\r?\n/)
-      .map((l) => l.replace(/^[-*•·…]+\s*/, '').trim())
-      .filter((t) => t && t !== '…' && t !== '...')
-      .map((t) => ({ title: t, area, priority }))
-    if (lines.length === 0) {
-      setBulkMsg('Her satıra bir görev yaz (placeholder yetmez — gerçekten yaz/yapıştır).')
-      return
-    }
-    setBulkBusy(true)
-    try {
-      const result = await studio.addTasksBulk(projectId, lines)
-      if (result.count > 0) {
-        setBulkText('')
-        setProjectFilter(projectId)
-        studio.setActiveProjectId(projectId)
-        setBulkMsg(`${result.count} görev eklendi.`)
-      } else {
-        setBulkMsg(result.error || studio.error || 'Eklenemedi.')
-      }
-    } finally {
-      setBulkBusy(false)
-    }
-  }
-
-  async function seedBlindTaxi() {
-    let project =
-      studio.projects.find((p) => p.name.toLowerCase().includes('blind taxi')) ??
-      null
-    if (!project) {
-      project = await studio.addProject({
-        name: 'Blind Taxi',
-        kind: 'game',
-        status: 'preprod',
-        engine: 'Unity',
-        platforms: ['PC', 'Steam'],
-        description: 'Blind Taxi production board',
-      })
-    }
-    if (!project) return
-    const existing = new Set(
-      studio.tasks
-        .filter((t) => t.projectId === project!.id)
-        .map((t) => t.title),
-    )
-    const missing = BLIND_TAXI_TASKS.filter((t) => !existing.has(t.title))
-    if (missing.length === 0) {
-      alert('Blind Taxi şablon görevleri zaten var.')
-      setProjectFilter(project.id)
-      studio.setActiveProjectId(project.id)
-      return
-    }
-    const result = await studio.addTasksBulk(project.id, missing)
-    setProjectFilter(project.id)
-    studio.setActiveProjectId(project.id)
-    if (result.count > 0) alert(`${result.count} Blind Taxi görevi eklendi.`)
-    else if (result.error) alert(result.error)
-  }
-
   function onDragStart(e: DragEvent, taskId: string) {
     e.dataTransfer.setData('text/task-id', taskId)
     e.dataTransfer.effectAllowed = 'move'
@@ -240,8 +169,8 @@ function App() {
     }
   }
 
-  const isIdeasOwner =
-    (auth.user?.email || '').toLowerCase() === IDEAS_OWNER_EMAIL.toLowerCase()
+  const isOwner =
+    (auth.user?.email || '').toLowerCase() === OWNER_EMAIL.toLowerCase()
 
   const gameProjects = studio.projects.filter((p) => p.kind === 'game')
   const otherProjects = studio.projects.filter((p) => p.kind !== 'game')
@@ -278,7 +207,14 @@ function App() {
               ['docs', 'Dökümanlar'],
             ] as [View, string][]
           )
-            .concat(isIdeasOwner ? [['ideas', 'Fikirler']] : [])
+            .concat(
+              isOwner
+                ? [
+                    ['ideas', 'Fikirler'],
+                    ['management', 'Yönetim'],
+                  ]
+                : [],
+            )
             .map(([id, label]) => (
               <button
                 key={id}
@@ -503,6 +439,77 @@ function App() {
                 )}
               </div>
             </section>
+
+            <section className="dash-section">
+              <div className="dash-section__head">
+                <h2>Önemli linkler</h2>
+              </div>
+              <ul className="links-list">
+                {studio.links.length === 0 && (
+                  <li className="muted">
+                    Henüz link yok. Aşağıdan GitHub kuralları vb. ekleyebilirsin.
+                  </li>
+                )}
+                {studio.links.map((l) => (
+                  <li key={l.id} className="link-card">
+                    <div className="link-card__top">
+                      {l.url ? (
+                        <a href={l.url} target="_blank" rel="noopener noreferrer">
+                          {l.title}
+                        </a>
+                      ) : (
+                        <strong>{l.title}</strong>
+                      )}
+                      <button
+                        type="button"
+                        className="chip chip--danger"
+                        onClick={() => void studio.deleteLink(l.id)}
+                      >
+                        Sil
+                      </button>
+                    </div>
+                    {l.body && <pre className="link-card__body">{l.body}</pre>}
+                  </li>
+                ))}
+              </ul>
+              <form
+                className="composer composer--compact"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  void studio.addLink(linkTitle, linkUrl, linkBody).then(() => {
+                    setLinkTitle('')
+                    setLinkUrl('')
+                    setLinkBody('')
+                  })
+                }}
+              >
+                <input
+                  className="composer__title"
+                  value={linkTitle}
+                  onChange={(e) => setLinkTitle(e.target.value)}
+                  placeholder="Başlık (örn. GitHub push kuralları)"
+                  required
+                />
+                <input
+                  className="composer__title"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="URL (opsiyonel)"
+                />
+                <textarea
+                  className="ideas__body"
+                  value={linkBody}
+                  onChange={(e) => setLinkBody(e.target.value)}
+                  rows={3}
+                  placeholder="Kurallar / not (opsiyonel)"
+                />
+                <div className="composer__row">
+                  <button type="submit" className="btn btn--lime btn--sm">
+                    Link / kural ekle
+                  </button>
+                </div>
+              </form>
+            </section>
           </>
         )}
 
@@ -520,35 +527,6 @@ function App() {
                   onClick={() => setMineOnly((v) => !v)}
                 >
                   Bana atanan
-                </button>
-                <button
-                  type="button"
-                  className={`pill ${bulkOpen ? 'is-active' : ''}`}
-                  onClick={() => {
-                    setBulkOpen((v) => !v)
-                    if (
-                      !bulkProjectId &&
-                      (projectFilter !== 'all'
-                        ? projectFilter
-                        : studio.activeProjectId)
-                    ) {
-                      setBulkProjectId(
-                        projectFilter !== 'all'
-                          ? projectFilter
-                          : studio.activeProjectId,
-                      )
-                    }
-                  }}
-                >
-                  Toplu ekle
-                </button>
-                <button
-                  type="button"
-                  className="pill"
-                  onClick={() => void seedBlindTaxi()}
-                  title="Blind Taxi şablon görevlerini ekle"
-                >
-                  Blind Taxi şablon
                 </button>
               </div>
             </header>
@@ -624,52 +602,6 @@ function App() {
                 </button>
               </div>
             </form>
-
-            {bulkOpen && (
-              <section className="bulk">
-                <label className="bulk__label">
-                  Proje
-                  <select
-                    value={bulkProjectId}
-                    onChange={(e) => setBulkProjectId(e.target.value)}
-                  >
-                    <option value="">Proje seç…</option>
-                    {studio.projects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p className="bulk__hint">
-                  Her satır = bir görev. Madde işaretleri otomatik temizlenir.
-                </p>
-                <textarea
-                  value={bulkText}
-                  onChange={(e) => setBulkText(e.target.value)}
-                  rows={8}
-                  placeholder={'GDD\nKarakter Tasarımı\nSteam Capsule Art\n…'}
-                />
-                {bulkMsg && <p className="bulk__msg">{bulkMsg}</p>}
-                <div className="composer__row">
-                  <button
-                    type="button"
-                    className="btn btn--lime btn--sm"
-                    disabled={bulkBusy}
-                    onClick={() => void submitBulk()}
-                  >
-                    {bulkBusy ? 'Ekleniyor…' : 'Satırları ekle'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--ghost btn--sm"
-                    onClick={() => setBulkOpen(false)}
-                  >
-                    Kapat
-                  </button>
-                </div>
-              </section>
-            )}
 
             <div className="kanban">
               {columns.map((col) => (
@@ -910,7 +842,15 @@ function App() {
           </>
         )}
 
-        {view === 'ideas' && isIdeasOwner && (
+        {view === 'management' && isOwner && (
+          <ManagementView
+            finance={studio.finance}
+            onAdd={studio.addFinance}
+            onDelete={studio.deleteFinance}
+          />
+        )}
+
+        {view === 'ideas' && isOwner && (
           <>
             <header className="topbar">
               <div className="topbar__title">
