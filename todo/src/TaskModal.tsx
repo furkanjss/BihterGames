@@ -64,10 +64,10 @@ export function TaskModal({
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!form.title.trim()) return
+    if (!form || !form.title.trim()) return
     setBusy(true)
     try {
-      await onSave(task!.id, form)
+      await onSave(task.id, form)
       onClose()
     } finally {
       setBusy(false)
@@ -204,9 +204,11 @@ export function TaskModal({
               type="button"
               className="btn btn--danger btn--sm"
               onClick={() => {
-                if (confirm('Bu görev silinsin mi?')) {
-                  void onDelete(task.id).then(() => onClose())
-                }
+                if (!confirm('Bu görev silinsin mi?')) return
+                void (async () => {
+                  await onDelete(task.id)
+                  onClose()
+                })()
               }}
             >
               Sil
