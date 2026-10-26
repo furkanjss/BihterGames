@@ -1,4 +1,4 @@
-import type { Document, Profile, Project, Task } from './types'
+import type { Document, Idea, Profile, Project, Task } from './types'
 
 export function mapProfile(row: Record<string, unknown>): Profile {
   return {
@@ -51,6 +51,16 @@ export function mapDocument(row: Record<string, unknown>): Document {
     projectId: String(row.project_id),
     title: String(row.title),
     url: String(row.url),
+    createdAt: String(row.created_at ?? ''),
+    createdBy: row.created_by ? String(row.created_by) : null,
+  }
+}
+
+export function mapIdea(row: Record<string, unknown>): Idea {
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    body: row.body ? String(row.body) : undefined,
     createdAt: String(row.created_at ?? ''),
     createdBy: row.created_by ? String(row.created_by) : null,
   }

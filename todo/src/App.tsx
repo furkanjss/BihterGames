@@ -5,6 +5,7 @@ import { ProjectModal, type ProjectFormValue } from './ProjectModal'
 import { BLIND_TAXI_TASKS } from './taskTemplates'
 import {
   GAME_AREAS,
+  IDEAS_OWNER_EMAIL,
   PERSONAL_AREA,
   PRIORITIES,
   PROJECT_STATUSES,
@@ -17,7 +18,7 @@ import {
 import { useAuth } from './useAuth'
 import { useStudio } from './useStudio'
 
-type View = 'dashboard' | 'tasks' | 'projects' | 'docs'
+type View = 'dashboard' | 'tasks' | 'projects' | 'docs' | 'ideas'
 
 function App() {
   const auth = useAuth()
@@ -32,6 +33,8 @@ function App() {
   const [dueDate, setDueDate] = useState('')
   const [docTitle, setDocTitle] = useState('')
   const [docUrl, setDocUrl] = useState('')
+  const [ideaTitle, setIdeaTitle] = useState('')
+  const [ideaBody, setIdeaBody] = useState('')
   const [bulkOpen, setBulkOpen] = useState(false)
   const [bulkText, setBulkText] = useState('')
   const [nameDraft, setNameDraft] = useState('')
@@ -214,10 +217,21 @@ function App() {
     }
   }
 
+  const isIdeasOwner =
+    (auth.user?.email || '').toLowerCase() === IDEAS_OWNER_EMAIL.toLowerCase()
+
   const gameProjects = studio.projects.filter((p) => p.kind === 'game')
   const otherProjects = studio.projects.filter((p) => p.kind !== 'game')
   const bulkTargetId =
     projectFilter === 'all' ? studio.activeProjectId : projectFilter
+
+  async function submitIdea(e: FormEvent) {
+    e.preventDefault()
+    if (!ideaTitle.trim()) return
+    await studio.addIdea(ideaTitle, ideaBody)
+    setIdeaTitle('')
+    setIdeaBody('')
+  }
 
   return (
     <div className="app">
@@ -242,17 +256,19 @@ function App() {
               ['tasks', 'Görevler'],
               ['projects', 'Projeler'],
               ['docs', 'Dökümanlar'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`view-nav__btn ${view === id ? 'is-active' : ''}`}
-              onClick={() => setView(id)}
-            >
-              {label}
-            </button>
-          ))}
+            ] as [View, string][]
+          )
+            .concat(isIdeasOwner ? [['ideas', 'Fikirler']] : [])
+            .map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={`view-nav__btn ${view === id ? 'is-active' : ''}`}
+                onClick={() => setView(id)}
+              >
+                {label}
+              </button>
+            ))}
         </nav>
 
         <div className="sidebar__block">
@@ -837,6 +853,64 @@ function App() {
                 </ul>
               </>
             )}
+          </>
+        )}
+
+        {view === 'ideas' && isIdeasOwner && (
+          <>
+            <header className="topbar">
+              <div className="topbar__title">
+                <p className="eyebrow">Private</p>
+                <h1>Fikirler</h1>
+              </div>
+            </header>
+            <p className="pad muted ideas__lede">
+              Sadece sen görürsün. Proje açmadan aklındakileri buraya yaz.
+            </p>
+            <form className="composer" onSubmit={(e) => void submitIdea(e)}>
+              <input
+                className="composer__title"
+                value={ideaTitle}
+                onChange={(e) => setIdeaTitle(e.target.value)}
+                placeholder="Fikir başlığı…"
+                required
+              />
+              <textarea
+                className="ideas__body"
+                value={ideaBody}
+                onChange={(e) => setIdeaBody(e.target.value)}
+                rows={3}
+                placeholder="Not / detay (opsiyonel)"
+              />
+              <div className="composer__row">
+                <button type="submit" className="btn btn--lime">
+                  Kaydet
+                </button>
+              </div>
+            </form>
+            <ul className="ideas-list">
+              {studio.ideas.length === 0 && (
+                <li className="muted pad">Henüz fikir yok.</li>
+              )}
+              {studio.ideas.map((idea) => (
+                <li key={idea.id} className="idea-card">
+                  <div className="idea-card__top">
+                    <h2>{idea.title}</h2>
+                    <button
+                      type="button"
+                      className="chip chip--danger"
+                      onClick={() => void studio.deleteIdea(idea.id)}
+                    >
+                      Sil
+                    </button>
+                  </div>
+                  {idea.body && <p>{idea.body}</p>}
+                  <time className="muted">
+                    {new Date(idea.createdAt).toLocaleString('tr-TR')}
+                  </time>
+                </li>
+              ))}
+            </ul>
           </>
         )}
       </main>

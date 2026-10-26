@@ -57,6 +57,17 @@ export interface Document {
   createdBy?: string | null
 }
 
+export interface Idea {
+  id: string
+  title: string
+  body?: string
+  createdAt: string
+  createdBy?: string | null
+}
+
+/** Only this account sees / edits the Ideas inbox */
+export const IDEAS_OWNER_EMAIL = 'info@bihtergames.com'
+
 export interface Task {
   id: string
   projectId: string

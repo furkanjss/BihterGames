@@ -750,6 +750,62 @@
   gap: 0.4rem;
 }
 
+/* Ideas */
+.ideas__lede {
+  padding-top: 0;
+  padding-bottom: 0.5rem;
+}
+
+.ideas__body {
+  width: 100%;
+  margin: 0 1.5rem;
+  max-width: calc(100% - 3rem);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  resize: vertical;
+}
+
+.ideas-list {
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0 1.5rem 2rem;
+}
+
+.idea-card {
+  padding: 1rem 1.1rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.idea-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.idea-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.idea-card > p {
+  color: var(--muted);
+  font-weight: 300;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.idea-card time {
+  font-size: 0.75rem;
+}
+
 /* Docs */
 .doc-list {
   list-style: none;

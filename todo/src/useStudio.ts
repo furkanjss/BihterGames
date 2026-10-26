@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { mapDocument, mapProfile, mapProject, mapTask } from './mappers'
+import {
+  mapDocument,
+  mapIdea,
+  mapProfile,
+  mapProject,
+  mapTask,
+} from './mappers'
 import { supabase } from './supabase'
 import type {
   Document,
   GameArea,
+  Idea,
   Priority,
   Profile,
   Project,
@@ -41,6 +48,7 @@ export function useStudio(userId: string | undefined) {
   const [projects, setProjects] = useState<Project[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
+  const [ideas, setIdeas] = useState<Idea[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [activeProjectId, setActiveProjectId] = useState('')
   const [ready, setReady] = useState(false)
@@ -49,11 +57,12 @@ export function useStudio(userId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!supabase || !userId) return
     setError(null)
-    const [pRes, tRes, dRes, prRes] = await Promise.all([
+    const [pRes, tRes, dRes, prRes, iRes] = await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: true }),
       supabase.from('tasks').select('*').order('created_at', { ascending: false }),
       supabase.from('documents').select('*').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('display_name', { ascending: true }),
+      supabase.from('ideas').select('*').order('created_at', { ascending: false }),
     ])
 
     if (pRes.error || tRes.error || dRes.error || prRes.error) {
@@ -68,6 +77,11 @@ export function useStudio(userId: string | undefined) {
       return
     }
 
+    // ideas may 404 until migration; or RLS empty for non-owner — ignore soft
+    if (iRes.error && !/permission|policy|does not exist|404/i.test(iRes.error.message)) {
+      // keep quiet for non-owners (RLS returns empty or error)
+    }
+
     const nextProjects = (pRes.data ?? []).map((r) =>
       mapProject(r as Record<string, unknown>),
     )
@@ -79,6 +93,11 @@ export function useStudio(userId: string | undefined) {
     setProfiles(
       (prRes.data ?? []).map((r) => mapProfile(r as Record<string, unknown>)),
     )
+    setIdeas(
+      iRes.error
+        ? []
+        : (iRes.data ?? []).map((r) => mapIdea(r as Record<string, unknown>)),
+    )
     setActiveProjectId((prev) => prev || nextProjects[0]?.id || '')
     setReady(true)
   }, [userId])
@@ -88,6 +107,7 @@ export function useStudio(userId: string | undefined) {
       setProjects([])
       setTasks([])
       setDocuments([])
+      setIdeas([])
       setProfiles([])
       setReady(false)
       return
@@ -338,6 +358,37 @@ export function useStudio(userId: string | undefined) {
     setDocuments((prev) => prev.filter((d) => d.id !== id))
   }, [])
 
+  const addIdea = useCallback(
+    async (title: string, body?: string) => {
+      if (!supabase || !userId || !title.trim()) return
+      const { data, error: err } = await supabase
+        .from('ideas')
+        .insert({
+          title: title.trim(),
+          body: body?.trim() || null,
+          created_by: userId,
+        })
+        .select('*')
+        .single()
+      if (err) {
+        setError(err.message)
+        return
+      }
+      setIdeas((prev) => [mapIdea(data as Record<string, unknown>), ...prev])
+    },
+    [userId],
+  )
+
+  const deleteIdea = useCallback(async (id: string) => {
+    if (!supabase) return
+    const { error: err } = await supabase.from('ideas').delete().eq('id', id)
+    if (err) {
+      setError(err.message)
+      return
+    }
+    setIdeas((prev) => prev.filter((i) => i.id !== id))
+  }, [])
+
   const profileName = useCallback(
     (id: string | null | undefined) => {
       if (!id) return 'Atanmamış'
@@ -352,6 +403,7 @@ export function useStudio(userId: string | undefined) {
     projects,
     tasks,
     documents,
+    ideas,
     profiles,
     activeProjectId,
     setActiveProjectId,
@@ -367,6 +419,8 @@ export function useStudio(userId: string | undefined) {
     deleteTask,
     addDocument,
     deleteDocument,
+    addIdea,
+    deleteIdea,
     profileName,
     refresh,
   }
