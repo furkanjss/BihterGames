@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Frostline — GDD | Bihter Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #070707;
+      --ink-soft: #101010;
+      --panel: #141414;
+      --lime: #d9ff3a;
+      --snow: #f5f5f0;
+      --muted: rgba(245, 245, 240, 0.62);
+      --line: rgba(245, 245, 240, 0.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 14mm 14mm 16mm;
+    }
+
+    html, body {
+      background: var(--ink);
+      color: var(--snow);
+      font-family: "Outfit", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      padding: 0;
+      max-width: 180mm;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 {
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    h1 {
+      font-size: 28pt;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35rem;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--lime);
+    }
+
+    h2 {
+      font-size: 14pt;
+      color: var(--lime);
+      margin: 1.35rem 0 0.55rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid var(--line);
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 11.5pt;
+      margin: 0.85rem 0 0.35rem;
+      page-break-after: avoid;
+    }
+
+    p { margin: 0.35rem 0; color: var(--snow); }
+    .muted { color: var(--muted); }
+    .lead { font-size: 11.5pt; color: var(--muted); max-width: 42em; }
+
+    .cover {
+      min-height: 240mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 8mm 0 12mm;
+      page-break-after: always;
+      background:
+        radial-gradient(ellipse 70% 45% at 80% 10%, rgba(217, 255, 58, 0.14), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 0% 90%, rgba(120, 170, 255, 0.08), transparent 50%),
+        var(--ink);
+    }
+
+    .brand {
+      font-size: 9pt;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--lime);
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem 1.25rem;
+      margin-top: 1.75rem;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      font-size: 9.5pt;
+    }
+
+    .meta div span {
+      display: block;
+      color: var(--muted);
+      font-size: 8pt;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.15rem;
+    }
+
+    .meta div strong { font-weight: 600; }
+
+    .quote {
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-size: 13pt;
+      font-weight: 700;
+      margin: 0.75rem 0 1rem;
+      max-width: 36em;
+    }
+
+    .quote span { color: var(--lime); }
+
+    ul, ol {
+      margin: 0.35rem 0 0.55rem 1.1rem;
+      color: var(--muted);
+    }
+
+    li { margin: 0.15rem 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5rem 0 0.85rem;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.4rem 0.55rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(217, 255, 58, 0.12);
+      color: var(--lime);
+      font-weight: 600;
+      font-size: 8.5pt;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    td { background: var(--ink-soft); color: var(--snow); }
+    td .muted, .cell-muted { color: var(--muted); }
+
+    .box {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 0.75rem 0.9rem;
+      margin: 0.55rem 0;
+      page-break-inside: avoid;
+    }
+
+    .heat {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      align-items: center;
+      margin: 0.45rem 0;
+      font-size: 9pt;
+    }
+
+    .heat span {
+      border: 1px solid var(--line);
+      background: var(--ink);
+      padding: 0.25rem 0.45rem;
+    }
+
+    .heat em { font-style: normal; color: var(--lime); margin-left: 0.25rem; }
+    .heat i { font-style: normal; color: var(--muted); }
+
+    .loop {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.35rem;
+      margin: 0.55rem 0;
+      page-break-inside: avoid;
+    }
+
+    .loop div {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 0.45rem 0.4rem;
+      font-size: 8.5pt;
+    }
+
+    .loop b {
+      display: block;
+      color: var(--lime);
+      font-size: 7.5pt;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.15rem;
+    }
+
+    .phase {
+      display: grid;
+      grid-template-columns: 4.2rem 1fr;
+      gap: 0.65rem;
+      margin: 0.45rem 0;
+      page-break-inside: avoid;
+    }
+
+    .phase__m {
+      color: var(--lime);
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 11pt;
+    }
+
+    .phase__b {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 0.55rem 0.7rem;
+    }
+
+    .phase__b strong { display: block; margin-bottom: 0.2rem; }
+    .phase__b p { color: var(--muted); font-size: 9.5pt; margin: 0; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+      margin: 0.75rem 0;
+      page-break-inside: avoid;
+    }
+
+    .stats article {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(217, 255, 58, 0.08), transparent), var(--ink-soft);
+      padding: 0.65rem 0.75rem;
+    }
+
+    .stats span {
+      display: block;
+      font-size: 7.5pt;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .stats strong {
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-size: 16pt;
+      color: var(--lime);
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+
+    .footer-note {
+      margin-top: 1.5rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--line);
+      font-size: 8.5pt;
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 0.15rem 0.45rem;
+      margin: 0.15rem 0.2rem 0.15rem 0;
+      font-size: 8pt;
+      color: var(--muted);
+    }
+
+    .keep { page-break-inside: avoid; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <p class="brand">bihter GAMES</p>
+    <h1>Project<br /><em>Frostline</em></h1>
+    <p class="lead" style="margin-top: 0.75rem;">
+      Game Design Document — kıyamet sonrası hayatta kalma / strateji / şehir kurma.
+      Medeniyet bir trendir; ısı omurgadır; soğuk her şeyi yok etmeden ne kadar uzağa gidebilirsin?
+    </p>
+    <div class="meta">
+      <div><span>Geliştirici</span><strong>Bihter Games</strong></div>
+      <div><span>Oyun yönetmeni</span><strong>Furkan Çağlar</strong></div>
+      <div><span>Platform</span><strong>PC — Steam Early Access</strong></div>
+      <div><span>Motor</span><strong>Unity LTS</strong></div>
+      <div><span>Geliştirme süresi</span><strong>10 ay</strong></div>
+      <div><span>Tahmini bütçe</span><strong>80.000 USD</strong></div>
+      <div><span>Comparable</span><strong>Frostpunk, Last Train Home, Frostrain</strong></div>
+      <div><span>Hedef</span><strong>Steam Early Access</strong></div>
+    </div>
+  </section>
+
+  <h2>1. Kısa özet</h2>
+  <p>
+    Project Frostline, kıyamet sonrası donmuş bir dünyada geçen bir hayatta kalma ve strateji oyunudur.
+    Oyuncunun şehri, devasa ve hareket halinde olan bir trendir — yalnızca ulaşım değil; ekonomi, altyapı ve medeniyet.
+  </p>
+  <p class="quote">Asıl soru: “Şehrimi ne kadar büyütebilirim?” değil —
+    <span>“Soğuk her şeyi yok etmeden medeniyetimi ne kadar uzağa götürebilirim?”</span></p>
+
+  <h2>2. Temel oynanış sütunları</h2>
+  <h3>2.1 Hareket eden şehir</h3>
+  <p>
+    Tren, modüler bir şehir olarak çalışır. Oyuncu yaşam, atölye, gıda, depo, hastane, araştırma, enerji,
+    ısıtma, keşif, üretim, güvenlik ve kaynak işleme vagonları inşa eder. Vagonların trenin üzerindeki
+    konumları ısı dağılımını, kaynak akışını, üretimi ve güvenliği doğrudan etkiler.
+  </p>
+
+  <h2>3–4. Isı sistemi &amp; yönetimi</h2>
+  <p>
+    Isı, Frostline’ın temel altyapısıdır. Merkez reaktör / ısı üreticisi temel ısıyı sağlar; uzaklaştıkça sıcaklık düşer.
+  </p>
+  <div class="heat">
+    <span>Reaktör<em>+25°C</em></span><i>→</i>
+    <span>Yaşam<em>+18°C</em></span><i>→</i>
+    <span>Atölye<em>+12°C</em></span><i>→</i>
+    <span>Tarım<em>+5°C</em></span><i>→</i>
+    <span>Depo<em>−5°C</em></span><i>→</i>
+    <span>Keşif<em>−15°C</em></span>
+  </div>
+  <p class="muted">Zincir: Tren büyüklüğü → ısı kaybı → kaynak tüketimi → teknoloji → hayatta kalma</p>
+  <ul>
+    <li>Teknolojiler: ısı boruları, buhar, yalıtım, depolama, ikincil üreticiler, pompalar, gelişmiş reaktör</li>
+    <li>Stratejik seçimler: hastane mi tarım mı; tüm tren düşük ısıda mı; yakıt şimdi mi sonra mı</li>
+    <li>Kazan aşırı yük: kritik soğukta ekstra ısı, biriken stres; %100’de patlama ve oyun sonu riski</li>
+  </ul>
+
+  <h2>5–6. Büyüme &amp; vagonlar</h2>
+  <p>
+    Küçük trenle başlanır. Her yeni vagon insan, yiyecek, yakıt, bakım, ısı kaybı ve altyapı ihtiyacını artırır —
+    büyümek her zaman avantaj değildir.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Vagon</th><th>İşlev</th><th>Not</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Yaşam</td><td>Nüfus alanı</td><td class="muted">Nüfus ↑ → yiyecek, su, ısı ↑</td></tr>
+      <tr><td>Atölye</td><td>Tamir, ekipman, yükseltme</td><td class="muted">Üretim omurgası</td></tr>
+      <tr><td>Tarım / sera</td><td>Gıda</td><td class="muted">Isı + su + enerji + iş gücü</td></tr>
+      <tr><td>Hastane</td><td>Tedavi, hastalık</td><td class="muted">Nüfusun korunması</td></tr>
+      <tr><td>Araştırma</td><td>Teknoloji</td><td class="muted">Isı, üretim, keşif, enerji</td></tr>
+      <tr><td>Depo / tender</td><td>Kaynak saklama</td><td class="muted">Büyüdükçe altyapı baskısı</td></tr>
+      <tr><td>Reaktör / enerji</td><td>Enerji ve ısı</td><td class="muted">Gelişmiş altyapı</td></tr>
+      <tr><td>Keşif</td><td>Dış ekipler</td><td class="muted">Dünya ile köprü</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7. Sistem kombinasyonu</h2>
+  <table>
+    <thead>
+      <tr><th>Tip</th><th>Çekirdek</th><th>Avantaj</th><th>Bedel</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Endüstriyel</td><td>Atölye + üretim + enerji</td><td>Güçlü üretim</td><td class="muted">Yüksek yakıt / ısı</td></tr>
+      <tr><td>Tarım</td><td>Çok sera + su</td><td>Gıda bağımsızlığı</td><td class="muted">Yüksek ısı / su</td></tr>
+      <tr><td>Keşif</td><td>Küçük nüfus + keşif + depo</td><td>Hızlı keşif</td><td class="muted">Düşük iç üretim</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8–13. Keşif, duraklar, dünya, hava</h2>
+  <p>
+    Tren ihtiyacının hepsini kendi içinde üretemez. Bölgelerde durulur: terk şehirler, askeri tesisler,
+    donmuş çiftlikler, madenler, fabrikalar, hayatta kalan topluluklar, yakıt depoları.
+  </p>
+  <ul>
+    <li>Durmak fırsat yaratır ama soğuk, yakıt ve nüfus riski taşır</li>
+    <li>Keşif ekipleri: sağlık, vücut sıcaklığı, ekipman, yetenek, yorgunluk</li>
+    <li>Dünya haritası rotaları fırtına, aşırı soğuk veya hasarlı raylarla kapanabilir</li>
+    <li>Dinamik hava ve büyük fırtınalar oynanış problemidir</li>
+    <li>Krizde vagon fedakârlığı: daha az ısı ihtiyacı, hayatta kalma</li>
+  </ul>
+
+  <h2>14–16. Nüfus, toplum, kararlar</h2>
+  <p>
+    İnsanlar iş gücüdür: sağlık, açlık, sıcaklık, yorgunluk, moral, meslek, yetenek.
+    Mesai türleri üretimi artırır ama hoşnutsuzluk / ölüm riski getirir.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Mesai</th><th>Üretim</th><th>Bedel</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Normal</td><td>×1</td><td class="muted">—</td></tr>
+      <tr><td>Uzatılmış</td><td>×1.4</td><td class="muted">Hoşnutsuzluk + kaza riski</td></tr>
+      <tr><td>Acil / 24 saat</td><td>×2</td><td class="muted">Yüksek hoşnutsuzluk + ölüm riski</td></tr>
+    </tbody>
+  </table>
+  <div class="box keep">
+    <p><strong>Umut</strong> (0 → kriz) · <strong>Hoşnutsuzluk</strong> (100 → kriz)</p>
+    <p class="muted" style="margin-top:0.35rem;">
+      Kanun Kitabı: Uyum / Düzen / İnanç yolları (Düzen ↔ İnanç dışlar). Sözler ~2 gün.
+      Son şans bir kez; başarısızlık isyan / indirilme. Nüfus sıfırlanması anlık oyun sonu.
+    </p>
+  </div>
+  <p>
+    Kararlar çoğunlukla sistemlerden doğar (ısı, yerleşim, rota, keşif büyüklüğü).
+    Yol / gece olayları baskıyı kişiselleştirir ama tek kanal değildir.
+  </p>
+
+  <h2>17–19. Teknoloji, kaynak, tekrar oynanabilirlik</h2>
+  <ul>
+    <li>Tech ağacı sorun çözer: ısı, sanayi, tarım, keşif, altyapı</li>
+    <li>Kaynak zinciri: Yakıt→Enerji→Isı; Su+Enerji+Isı→Yiyecek; Hurda+Metal+Enerji→Ekipman</li>
+    <li>Değişkenler: harita, olaylar, hava, tech seçimleri, başlangıç, tren konfigürasyonu</li>
+  </ul>
+
+  <h2>20. Ana oynanış döngüsü</h2>
+  <div class="loop">
+    <div><b>01</b>Rota planla</div>
+    <div><b>02</b>Seyahat / olay</div>
+    <div><b>03</b>Durak / keşif</div>
+    <div><b>04</b>İnşa / üretim</div>
+    <div><b>05</b>Isı &amp; gece hesabı</div>
+  </div>
+  <p class="muted">
+    Gün: sabah raporu → mesai / kanun → rota → seyahat → durak → akşam inşa/araştırma →
+    gece hesabı (kömür, yemek, soğuk, ölüm, söz, stres, isyan) → fırtına → yeni gün.
+  </p>
+
+  <h2>21–27. Görsel, modlar, USP</h2>
+  <p>
+    Kontrast: sıcak, aydınlık, endüstriyel tren ↔ soğuk, boş, tehlikeli dış dünya.
+    Stil: steampunk gösterisi değil; işlevsel endüstriyel dil.
+  </p>
+  <p><strong>Modlar:</strong> Hikâye / Sefer · Hayatta Kalma / Sonsuz</p>
+  <p><strong>USP:</strong> hareket eden şehir · ısı omurgası · büyüdükçe zorlaşan sistem · riskli keşif · farklı tren yapıları · toplumsal baskı</p>
+  <p>
+    <span class="tag">Crafty-Buildy</span>
+    <span class="tag">Replay-Driven</span>
+    <span class="tag">Instant-Appeal</span>
+  </p>
+
+  <h2>28. Geliştirme planı — 10 ay</h2>
+  <div class="stats">
+    <article><span>Süre</span><strong>10 ay</strong></article>
+    <article><span>Hedef</span><strong>Steam EA</strong></article>
+    <article><span>Bütçe</span><strong>80k USD</strong></article>
+  </div>
+  <div class="phase">
+    <div class="phase__m">Ay 1–2</div>
+    <div class="phase__b">
+      <strong>Ön üretim</strong>
+      <p>Tasarım kilidi, ısı prototipi, tren inşa, kaynak, temel keşif, sanat yönü, teknik temel.</p>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase__m">Ay 3</div>
+    <div class="phase__b">
+      <strong>Dikey dilim</strong>
+      <p>10–15 dk eksiksiz döngü: seyahat → durak → keşif → dönüş → inşa / ısı.</p>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase__m">Ay 4–6</div>
+    <div class="phase__b">
+      <strong>Alfa</strong>
+      <p>Ana vagonlar, nüfus, tech, harita, keşif, olay, hava, hasar, ekonomi, kanun / umut.</p>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase__m">Ay 7–9</div>
+    <div class="phase__b">
+      <strong>Beta</strong>
+      <p>Sonsuz mod, içerik, denge, UI/UX, ses, optimizasyon, QA.</p>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase__m">Ay 10</div>
+    <div class="phase__b">
+      <strong>Early Access hazırlığı</strong>
+      <p>Bugfix, polish, Steam sayfası, lokalizasyon, fragman, pazarlama, performans.</p>
+    </div>
+  </div>
+
+  <h2>29. Early Access kapsamı</h2>
+  <ul>
+    <li>15–20 vagon türü · en az 3 bölge / biyom</li>
+    <li>Ana sefer + sonsuz hayatta kalma</li>
+    <li>Isı, kaynak, nüfus (mesai, eşsiz karakterler), tech, keşif, dinamik hava</li>
+    <li>Vagon hasarı / fedakârlık · umut / kanun / sözler · rastgele olaylar</li>
+  </ul>
+  <p class="muted">Amaç AAA bitmiş city builder değil; EA boyunca genişleyecek sistemik temel.</p>
+
+  <h2>30–31. Ekip &amp; bütçe</h2>
+  <div class="two keep">
+    <div class="box">
+      <p><strong>Furkan Çağlar</strong> — Lead Programmer / Game Designer</p>
+      <p class="muted">Sistemler, gameplay, production, publisher iletişimi</p>
+      <p style="margin-top:0.55rem;"><strong>Arda Ersayar</strong> — Game Artist</p>
+      <p class="muted">Model, karakter, VFX, UI, pazarlama, animasyon</p>
+      <p style="margin-top:0.55rem;" class="muted">+ Freelancer: UI/UX, ses, 3D, QA, lokalizasyon, Steam art</p>
+    </div>
+    <div class="box">
+      <table>
+        <thead><tr><th>Kategori</th><th>Bütçe</th></tr></thead>
+        <tbody>
+          <tr><td>Çekirdek ekip</td><td>50.000 $</td></tr>
+          <tr><td>Freelancer</td><td>15.000 $</td></tr>
+          <tr><td>Tool lisansları</td><td>5.000 $</td></tr>
+          <tr><td>Acil durum</td><td>10.000 $</td></tr>
+          <tr><td><strong>Toplam</strong></td><td style="color:#d9ff3a;"><strong>80.000 $</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2>32–33. Felsefe &amp; son vizyon</h2>
+  <p>
+    Öncelik içerik miktarı değil sistem derinliği: ısı, kaynaklar, nüfus, umut/kanun, teknoloji,
+    keşif, tren mimarisi ve hava etkileşimlerinden emergent durumlar.
+  </p>
+  <p class="quote">Dünya dondu, ama senin medeniyetin <span>hareket etmeye devam ediyor.</span></p>
+  <p class="footer-note">
+    © Bihter Games · Project Frostline GDD · bihtergames.com/frostline-gdd
+  </p>
+</body>
+</html>
