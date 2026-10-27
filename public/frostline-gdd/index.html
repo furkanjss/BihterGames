@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Project Frostline — GDD | Bihter Games</title>
+  <meta
+    name="description"
+    content="Project Frostline game design document: donmuş dünyada hareket eden tren-şehir, ısı altyapısı, 10 aylık Steam Early Access planı. Bihter Games."
+  />
+  <link rel="canonical" href="https://bihtergames.com/frostline-gdd/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bihter Games" />
+  <meta property="og:url" content="https://bihtergames.com/frostline-gdd/" />
+  <meta property="og:title" content="Project Frostline — GDD | Bihter Games" />
+  <meta
+    property="og:description"
+    content="Kıyamet sonrası hayatta kalma stratejisi: hareket eden tren-şehir, ısı altyapısı, 10 aylık geliştirme planı."
+  />
+  <meta property="og:image" content="https://bihtergames.com/logos/logo-lime.png" />
+  <link rel="icon" type="image/png" href="/logos/logo-lime.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/frostline-gdd/styles.css?v=1" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="nav__brand" href="/" aria-label="Bihter Games">
+      <img src="/frostline-gdd/assets/logo-lime.png" alt="" width="42" height="42" />
+      <span>bihter GAMES</span>
+    </a>
+    <nav class="nav__links">
+      <a href="#vizyon">Vizyon</a>
+      <a href="#sistemler">Sistemler</a>
+      <a href="#yol-haritasi">10 ay</a>
+      <a href="#ekip">Ekip</a>
+      <a class="btn btn--lime btn--sm" href="/frostline-gdd/assets/PROJECT_FROSTLINE_GDD.pdf" download>
+        PDF indir
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="hero__rail" aria-hidden="true"></div>
+      <div class="hero__inner">
+        <h1 class="hero__brand">Project<br /><em>Frostline</em></h1>
+        <p class="hero__lead">
+          Donmuş bir dünyada medeniyetin kendisi bir tren. Isıyı yönet, vagonlarla büyüt,
+          soğuk her şeyi yok etmeden ne kadar uzağa götürebileceğini gör.
+        </p>
+        <div class="hero__cta">
+          <a class="btn btn--lime" href="#yol-haritasi">10 aylık plan</a>
+          <a class="btn btn--ghost" href="/frostline-gdd/assets/PROJECT_FROSTLINE_GDD.pdf" download>
+            Tam GDD (PDF)
+          </a>
+        </div>
+        <p class="hero__meta">
+          <span><strong>Tür</strong> City builder · Survival · Strategy</span>
+          <span><strong>Platform</strong> PC — Steam EA</span>
+          <span><strong>Motor</strong> Unity LTS</span>
+          <span><strong>Süre</strong> 10 ay</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="vizyon">
+      <div class="wrap">
+        <div class="section__head reveal">
+          <p class="eyebrow">Vizyon</p>
+          <p class="quote">
+            Dünya dondu, ama senin medeniyetin
+            <span>hareket etmeye devam ediyor.</span>
+          </p>
+          <p>
+            Tren yalnızca ulaşım değil — şehrin, ekonomin, altyapın ve hayat kaynağın.
+            Her vagon medeniyeti güçlendirir; her vagon hayatta kalmayı biraz daha zorlaştırır.
+          </p>
+        </div>
+
+        <div class="pillars reveal">
+          <article class="pillar">
+            <b>Hareket eden şehir</b>
+            <p>Modüler vagonlarla fiziksel bir tren-şehir. Düzen ısıyı, akışı ve güvenliği belirler.</p>
+          </article>
+          <article class="pillar">
+            <b>Isı omurgası</b>
+            <p>Reaktörden uzaklaştıkça soğuk artar. Büyümek = daha fazla ısı kaybı ve karar baskısı.</p>
+          </article>
+          <article class="pillar">
+            <b>Riskli keşif</b>
+            <p>Dış dünya kaynak verir; kalmak ödül, ayrılmak güvenlik — ikisi birden yok.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sistemler">
+      <div class="wrap">
+        <div class="section__head reveal">
+          <p class="eyebrow">Oynanış</p>
+          <h2>Temel sistemler</h2>
+          <p>Tek doğru build yok. Isı, yerleşim, nüfus, kanun ve keşif birleşince her sefer farklı bir tren doğar.</p>
+        </div>
+
+        <div class="systems reveal">
+          <article class="system">
+            <h3>Isı sistemi</h3>
+            <p>
+              Merkez reaktör temel ısıyı sağlar; tren uzadıkça sıcaklık düşer.
+              Hastaneyi mi, tarımı mı sıcak tutacaksın? Yakıtı şimdi mi, sonraki bölge için mi?
+            </p>
+            <div class="heat-chain" aria-label="Örnek ısı zinciri">
+              <span>Reaktör <em>+25°C</em></span><i>→</i>
+              <span>Yaşam <em>+18°C</em></span><i>→</i>
+              <span>Atölye <em>+12°C</em></span><i>→</i>
+              <span>Depo <em>−5°C</em></span><i>→</i>
+              <span>Keşif <em>−15°C</em></span>
+            </div>
+            <ul>
+              <li>Isı boruları, yalıtım, pompalar, ikincil üreticiler</li>
+              <li>Kazan aşırı yük: ekstra ısı, biriken stres, patlama riski</li>
+            </ul>
+          </article>
+
+          <article class="system">
+            <h3>Vagon &amp; büyüme</h3>
+            <p>
+              Yaşam, atölye, sera, hastane, araştırma, depo, enerji, keşif, güvenlik…
+              Her yeni vagon kapasite ve yeni lojistik / ısı problemi demek.
+            </p>
+            <ul>
+              <li>Endüstriyel, tarım veya keşif odaklı tren yapıları</li>
+              <li>Konum önemli: menü şehri değil, fiziksel düzen</li>
+              <li>Krizde vagon fedakârlığı mümkün</li>
+            </ul>
+          </article>
+
+          <article class="system">
+            <h3>Keşif &amp; dünya</h3>
+            <p>
+              Haritada duraklar, biyomlar, fırtınalar. Ekipler dışarı çıkar; sağlık, soğuk ve yorgunluk takip edilir.
+            </p>
+            <ul>
+              <li>Terk şehirler, madenler, askeri tesisler, hayatta kalanlar</li>
+              <li>Uzun kalmak = daha fazla kaynak + daha fazla hasar</li>
+              <li>Dinamik hava oynanışı bozar, sadece görsel değildir</li>
+            </ul>
+          </article>
+
+          <article class="system">
+            <h3>Toplum</h3>
+            <p>
+              Umut ve hoşnutsuzluk metreleri, kanun kitabı, sözler, mesai türleri ve eşsiz karakterler.
+              Nüfus sıfırlanırsa oyun biter.
+            </p>
+            <ul>
+              <li>Uyum / Düzen / İnanç yolları (Düzen ↔ İnanç dışlar)</li>
+              <li>Son şans: umut 0 veya hoşnutsuzluk 100</li>
+              <li>İşçi, bilim ve hayatta kalan çıkar grupları</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dongu">
+      <div class="wrap">
+        <div class="section__head reveal">
+          <p class="eyebrow">Döngü</p>
+          <h2>Ana oynanış döngüsü</h2>
+          <p>Rota planla → seyahat et → keşfet → inşa et / araştır → ısıyı yönet → daha uzağa git.</p>
+        </div>
+        <div class="loop reveal">
+          <div class="loop__step"><b>01</b><span>Rota planla</span></div>
+          <div class="loop__step"><b>02</b><span>Seyahat &amp; olay</span></div>
+          <div class="loop__step"><b>03</b><span>Durak / keşif</span></div>
+          <div class="loop__step"><b>04</b><span>İnşa &amp; üretim</span></div>
+          <div class="loop__step"><b>05</b><span>Isı &amp; gece hesabı</span></div>
+        </div>
+        <p class="reveal" style="margin-top: 1.25rem; color: var(--muted); max-width: 40rem;">
+          Comparable: Frostpunk, Last Train Home, Frostrain.
+          Tag’ler: City Builder, Post-apocalyptic, Colony Sim, Resource Management, Trains, Simulation.
+        </p>
+        <div class="tags reveal" style="margin-top: 0.85rem;">
+          <span>Crafty-Buildy</span>
+          <span>Replay-Driven</span>
+          <span>Instant-Appeal</span>
+          <span>Singleplayer</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="yol-haritasi">
+      <div class="wrap">
+        <div class="section__head reveal">
+          <p class="eyebrow">Geliştirme</p>
+          <h2>10 aylık yol haritası</h2>
+          <p>
+            Hedef: Steam Early Access. Öncelik içerik yığını değil — ısı, tren mimarisi, nüfus ve keşif
+            etkileşiminden doğan sistem derinliği.
+          </p>
+        </div>
+
+        <div class="roadmap reveal">
+          <article class="phase">
+            <span class="phase__dot" aria-hidden="true"></span>
+            <div class="phase__months">Ay 1–2</div>
+            <div class="phase__body">
+              <strong>Ön üretim</strong>
+              <p>
+                Tasarım kilidi, ısı prototipi, temel tren inşası, kaynak akışı, ilk keşif iskeleti,
+                sanat yönü ve teknik temel.
+              </p>
+            </div>
+          </article>
+          <article class="phase">
+            <span class="phase__dot" aria-hidden="true"></span>
+            <div class="phase__months">Ay 3</div>
+            <div class="phase__body">
+              <strong>Dikey dilim</strong>
+              <p>
+                10–15 dakikalık eksiksiz döngü: seyahat → durak → keşif → dönüş → inşa / ısı kararı.
+              </p>
+            </div>
+          </article>
+          <article class="phase">
+            <span class="phase__dot" aria-hidden="true"></span>
+            <div class="phase__months">Ay 4–6</div>
+            <div class="phase__body">
+              <strong>Alfa</strong>
+              <p>
+                Ana vagon seti, nüfus &amp; mesai, teknoloji, harita, keşif, olaylar, hava,
+                vagon hasarı, ekonomi, umut / kanun sistemi.
+              </p>
+            </div>
+          </article>
+          <article class="phase">
+            <span class="phase__dot" aria-hidden="true"></span>
+            <div class="phase__months">Ay 7–9</div>
+            <div class="phase__body">
+              <strong>Beta</strong>
+              <p>
+                Sonsuz / hayatta kalma modu, içerik genişletme, denge, UI/UX, ses, optimizasyon ve QA.
+              </p>
+            </div>
+          </article>
+          <article class="phase">
+            <span class="phase__dot" aria-hidden="true"></span>
+            <div class="phase__months">Ay 10</div>
+            <div class="phase__body">
+              <strong>Early Access hazırlığı</strong>
+              <p>
+                Bugfix &amp; polish, Steam sayfası, lokalizasyon, fragman, pazarlama varlıkları, performans.
+              </p>
+            </div>
+          </article>
+        </div>
+
+        <div class="roadmap-summary reveal">
+          <article>
+            <span>Süre</span>
+            <strong>10 ay</strong>
+          </article>
+          <article>
+            <span>Hedef</span>
+            <strong>Steam EA</strong>
+          </article>
+          <article>
+            <span>Bütçe</span>
+            <strong>80.000 USD</strong>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ea">
+      <div class="wrap">
+        <div class="section__head reveal">
+          <p class="eyebrow">Kapsam</p>
+          <h2>Early Access çıkış</h2>
+          <p>
+            AAA bitmiş city builder değil — EA boyunca genişleyecek güçlü, sistemik bir temel.
+          </p>
+        </div>
+        <ul class="ea-grid reveal">
+          <li>15–20 vagon türü</li>
+          <li>En az 3 bölge / biyom</li>
+          <li>Ana hayatta kalma seferi</li>
+          <li>Sonsuz hayatta kalma modu</li>
+          <li>Isı altyapısı</li>
+          <li>Kaynak &amp; nüfus yönetimi</li>
+          <li>Teknoloji ağacı</li>
+          <li>Keşif &amp; dinamik hava</li>
+          <li>Vagon hasarı / fedakârlık</li>
+          <li>Umut, kanun, sözler</li>
+          <li>Rastgele olaylar</li>
+          <li>Farklı tren stratejileri</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="ekip">
+      <div class="wrap">
+        <div class="section__head reveal">
+          <p class="eyebrow">Stüdyo</p>
+          <h2>Ekip &amp; bütçe</h2>
+          <p>Bihter Games · Oyun yönetmeni Furkan Çağlar · Çekirdek 2 kişi + freelancer desteği.</p>
+        </div>
+
+        <div class="team reveal">
+          <div style="display: grid; gap: 1rem;">
+            <article class="person">
+              <h3>Furkan Çağlar</h3>
+              <p>Lead Programmer / Game Designer — sistemler, gameplay, production, publisher iletişimi.</p>
+            </article>
+            <article class="person">
+              <h3>Arda Ersayar</h3>
+              <p>Game Artist — modeller, karakterler, VFX, UI, pazarlama materyalleri, animasyon.</p>
+            </article>
+            <article class="person">
+              <h3>Freelancer</h3>
+              <p>UI/UX, animasyon, ses / müzik, ek 3D, QA, yerelleştirme, Steam kapsülleri.</p>
+            </article>
+          </div>
+          <article class="budget">
+            <h3>Bütçe dağılımı</h3>
+            <ul>
+              <li><span>Çekirdek ekip</span><b>50.000 $</b></li>
+              <li><span>Freelancer</span><b>15.000 $</b></li>
+              <li><span>Tool lisansları</span><b>5.000 $</b></li>
+              <li><span>Acil durum</span><b>10.000 $</b></li>
+              <li><span>Toplam</span><b>80.000 $</b></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__row">
+      <p>© Bihter Games · Project Frostline GDD</p>
+      <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+        <a class="btn btn--ghost btn--sm" href="/">Ana site</a>
+        <a class="btn btn--lime btn--sm" href="/frostline-gdd/assets/PROJECT_FROSTLINE_GDD.pdf" download>
+          PDF indir
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) e.target.classList.add('is-in')
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+    )
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+  </script>
+</body>
+</html>

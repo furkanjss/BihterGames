@@ -6,6 +6,11 @@
       "permanent": true
     },
     {
+      "source": "/frostline-gdd",
+      "destination": "/frostline-gdd/",
+      "permanent": true
+    },
+    {
       "source": "/studio",
       "destination": "/studio/",
       "permanent": true
