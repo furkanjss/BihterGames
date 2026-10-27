@@ -706,3 +706,190 @@ ul {
     padding-top: 6.5rem;
   }
 }
+
+/* ——— Full GDD document ——— */
+.doc {
+  width: min(100%, 48rem);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.doc__toc {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 1.25rem;
+  margin: 0 0 2.5rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 0.88rem;
+}
+
+.doc__toc a {
+  color: var(--muted);
+  transition: color 0.2s var(--ease);
+}
+
+.doc__toc a:hover {
+  color: var(--lime);
+}
+
+.doc__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem 1rem;
+  margin: 0 0 2rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--line);
+  background: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.doc__meta span {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
+}
+
+.doc h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
+  font-weight: 700;
+  color: var(--lime);
+  margin: 2.75rem 0 0.85rem;
+  scroll-margin-top: 5rem;
+}
+
+.doc h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 1.35rem 0 0.5rem;
+}
+
+.doc p {
+  margin: 0.55rem 0;
+  color: rgba(245, 245, 240, 0.88);
+}
+
+.doc ul,
+.doc ol {
+  margin: 0.55rem 0 0.85rem;
+  padding-left: 1.2rem;
+  color: var(--muted);
+}
+
+.doc li {
+  margin: 0.3rem 0;
+}
+
+.doc li::marker {
+  color: var(--lime);
+}
+
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.85rem 0 1.25rem;
+  font-size: 0.9rem;
+}
+
+.doc th,
+.doc td {
+  border: 1px solid var(--line);
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc th {
+  background: rgba(217, 255, 58, 0.08);
+  color: var(--lime);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.doc td {
+  background: var(--ink-soft);
+  color: rgba(245, 245, 240, 0.88);
+}
+
+.doc .quote {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1rem 0 1.25rem;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--lime);
+  color: var(--snow);
+}
+
+.doc .quote span {
+  color: var(--lime);
+}
+
+.doc .chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin: 0.85rem 0;
+  font-size: 0.88rem;
+}
+
+.doc .chain span {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.doc .chain em {
+  font-style: normal;
+  color: var(--lime);
+  margin-left: 0.3rem;
+}
+
+.doc .chain i {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.doc .flow {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.85rem 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.doc .flow span {
+  color: var(--lime);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+  padding-left: 0.35rem;
+}
+
+.doc .note {
+  margin: 0.85rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  background: rgba(217, 255, 58, 0.05);
+  color: rgba(245, 245, 240, 0.88);
+}
+
+@media (max-width: 720px) {
+  .doc__toc,
+  .doc__meta {
+    grid-template-columns: 1fr;
+  }
+}

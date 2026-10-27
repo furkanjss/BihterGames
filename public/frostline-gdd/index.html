@@ -6,7 +6,7 @@
   <title>Project Frostline — GDD | Bihter Games</title>
   <meta
     name="description"
-    content="Project Frostline game design document: donmuş dünyada hareket eden tren-şehir, ısı altyapısı, 10 aylık Steam Early Access planı. Bihter Games."
+    content="Project Frostline tam Game Design Document: hareket eden tren-şehir, ısı altyapısı, toplum sistemi ve 10 aylık Steam Early Access planı. Bihter Games."
   />
   <link rel="canonical" href="https://bihtergames.com/frostline-gdd/" />
   <meta property="og:type" content="website" />
@@ -15,7 +15,7 @@
   <meta property="og:title" content="Project Frostline — GDD | Bihter Games" />
   <meta
     property="og:description"
-    content="Kıyamet sonrası hayatta kalma stratejisi: hareket eden tren-şehir, ısı altyapısı, 10 aylık geliştirme planı."
+    content="Frostline tam GDD — donmuş dünyada hareket eden tren-şehir."
   />
   <meta property="og:image" content="https://bihtergames.com/logos/logo-lime.png" />
   <link rel="icon" type="image/png" href="/logos/logo-lime.png" />
@@ -25,7 +25,7 @@
     href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet"
   />
-  <link rel="stylesheet" href="/frostline-gdd/styles.css?v=1" />
+  <link rel="stylesheet" href="/frostline-gdd/styles.css?v=3" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -36,10 +36,10 @@
       <span>bihter GAMES</span>
     </a>
     <nav class="nav__links">
-      <a href="#vizyon">Vizyon</a>
-      <a href="#sistemler">Sistemler</a>
+      <a href="#ozet">Özet</a>
+      <a href="#isi">Isı</a>
+      <a href="#toplum">Toplum</a>
       <a href="#yol-haritasi">10 ay</a>
-      <a href="#ekip">Ekip</a>
       <a class="btn btn--lime btn--sm" href="/frostline-gdd/assets/PROJECT_FROSTLINE_GDD.pdf" download>
         PDF indir
       </a>
@@ -53,296 +53,600 @@
       <div class="hero__inner">
         <h1 class="hero__brand">Project<br /><em>Frostline</em></h1>
         <p class="hero__lead">
-          Donmuş bir dünyada medeniyetin kendisi bir tren. Isıyı yönet, vagonlarla büyüt,
-          soğuk her şeyi yok etmeden ne kadar uzağa götürebileceğini gör.
+          Tam Game Design Document — kıyamet sonrası hayatta kalma, strateji, şehir kurma ve yönetim.
         </p>
         <div class="hero__cta">
-          <a class="btn btn--lime" href="#yol-haritasi">10 aylık plan</a>
+          <a class="btn btn--lime" href="#doc">Belgeye geç</a>
           <a class="btn btn--ghost" href="/frostline-gdd/assets/PROJECT_FROSTLINE_GDD.pdf" download>
-            Tam GDD (PDF)
+            PDF indir
           </a>
         </div>
         <p class="hero__meta">
-          <span><strong>Tür</strong> City builder · Survival · Strategy</span>
           <span><strong>Platform</strong> PC — Steam EA</span>
           <span><strong>Motor</strong> Unity LTS</span>
           <span><strong>Süre</strong> 10 ay</span>
+          <span><strong>Bütçe</strong> 80.000 USD</span>
         </p>
       </div>
     </section>
 
-    <section class="section" id="vizyon">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <p class="eyebrow">Vizyon</p>
-          <p class="quote">
-            Dünya dondu, ama senin medeniyetin
-            <span>hareket etmeye devam ediyor.</span>
-          </p>
-          <p>
-            Tren yalnızca ulaşım değil — şehrin, ekonomin, altyapın ve hayat kaynağın.
-            Her vagon medeniyeti güçlendirir; her vagon hayatta kalmayı biraz daha zorlaştırır.
-          </p>
-        </div>
-
-        <div class="pillars reveal">
-          <article class="pillar">
-            <b>Hareket eden şehir</b>
-            <p>Modüler vagonlarla fiziksel bir tren-şehir. Düzen ısıyı, akışı ve güvenliği belirler.</p>
-          </article>
-          <article class="pillar">
-            <b>Isı omurgası</b>
-            <p>Reaktörden uzaklaştıkça soğuk artar. Büyümek = daha fazla ısı kaybı ve karar baskısı.</p>
-          </article>
-          <article class="pillar">
-            <b>Riskli keşif</b>
-            <p>Dış dünya kaynak verir; kalmak ödül, ayrılmak güvenlik — ikisi birden yok.</p>
-          </article>
-        </div>
+    <article class="doc" id="doc">
+      <div class="doc__meta">
+        <div><span>Geliştirici</span><strong>Bihter Games</strong></div>
+        <div><span>Oyun yönetmeni</span><strong>Furkan Çağlar</strong></div>
+        <div><span>Tür</span><strong>Kıyamet Sonrası Hayatta Kalma / Strateji / Şehir Kurma / Yönetim</strong></div>
+        <div><span>Platform</span><strong>PC — Steam</strong></div>
+        <div><span>Motor</span><strong>Unity LTS</strong></div>
+        <div><span>Hedef</span><strong>Steam Early Access</strong></div>
+        <div><span>Geliştirme süresi</span><strong>10 ay</strong></div>
+        <div><span>Tahmini bütçe</span><strong>80.000 USD</strong></div>
+        <div><span>Game tags</span><strong>City Builder, Post-apocalyptic, Colony Sim, Resource Management, Survival, Strategy, Base Building, Trains, Simulation, Singleplayer</strong></div>
+        <div><span>Comparable</span><strong>Frostpunk, Last Train Home, Frostrain 2</strong></div>
       </div>
-    </section>
 
-    <section class="section" id="sistemler">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <p class="eyebrow">Oynanış</p>
-          <h2>Temel sistemler</h2>
-          <p>Tek doğru build yok. Isı, yerleşim, nüfus, kanun ve keşif birleşince her sefer farklı bir tren doğar.</p>
-        </div>
+      <nav class="doc__toc" aria-label="İçindekiler">
+        <a href="#ozet">1. Kısa özet</a>
+        <a href="#sutunlar">2. Oynanış sütunları</a>
+        <a href="#isi">3–4. Isı sistemi</a>
+        <a href="#buyume">5–7. Büyüme &amp; vagonlar</a>
+        <a href="#kesif">8–13. Keşif &amp; dünya</a>
+        <a href="#nufus">14. Nüfus</a>
+        <a href="#toplum">15–16. Toplum &amp; karar</a>
+        <a href="#tech">17–19. Tech &amp; kaynak</a>
+        <a href="#dongu">20. Oynanış döngüsü</a>
+        <a href="#gorsel">21–27. Görsel, USP</a>
+        <a href="#yol-haritasi">28. 10 aylık plan</a>
+        <a href="#ea">29–33. EA, ekip, vizyon</a>
+      </nav>
 
-        <div class="systems reveal">
-          <article class="system">
-            <h3>Isı sistemi</h3>
-            <p>
-              Merkez reaktör temel ısıyı sağlar; tren uzadıkça sıcaklık düşer.
-              Hastaneyi mi, tarımı mı sıcak tutacaksın? Yakıtı şimdi mi, sonraki bölge için mi?
-            </p>
-            <div class="heat-chain" aria-label="Örnek ısı zinciri">
-              <span>Reaktör <em>+25°C</em></span><i>→</i>
-              <span>Yaşam <em>+18°C</em></span><i>→</i>
-              <span>Atölye <em>+12°C</em></span><i>→</i>
-              <span>Depo <em>−5°C</em></span><i>→</i>
-              <span>Keşif <em>−15°C</em></span>
-            </div>
-            <ul>
-              <li>Isı boruları, yalıtım, pompalar, ikincil üreticiler</li>
-              <li>Kazan aşırı yük: ekstra ısı, biriken stres, patlama riski</li>
-            </ul>
-          </article>
+      <h2 id="ozet">1. Oyunun kısa özeti</h2>
+      <p>
+        Project Frostline, kıyamet sonrası donmuş bir dünyada geçen bir hayatta kalma ve strateji oyunudur.
+        Oyuncunun şehri, devasa ve hareket halinde olan bir trendir. Tren evrende yalnızca bir ulaşım aracı olarak var
+        olmaz; oyuncunun şehri, ekonomisi, altyapısı ve medeniyeti olarak kurgulanmıştır.
+      </p>
+      <p>
+        Oyuncu süreç içerisinde treni genişletir, vagonlar inşa eder, nüfusu ve kaynakları yönetir, donmuş dünyayı
+        keşfeder ve medeniyetini hayatta tutmak için yeni teknolojiler geliştirir. Ancak tren büyüdükçe onu sıcak ve çalışır
+        halde tutmak zorlaşır.
+      </p>
+      <p class="quote">
+        Asıl soru: “Şehrimi ne kadar büyütebilirim?” değil —
+        <span>“Soğuk her şeyi yok etmeden medeniyetimi ne kadar uzağa götürebilirim?”</span>
+      </p>
 
-          <article class="system">
-            <h3>Vagon &amp; büyüme</h3>
-            <p>
-              Yaşam, atölye, sera, hastane, araştırma, depo, enerji, keşif, güvenlik…
-              Her yeni vagon kapasite ve yeni lojistik / ısı problemi demek.
-            </p>
-            <ul>
-              <li>Endüstriyel, tarım veya keşif odaklı tren yapıları</li>
-              <li>Konum önemli: menü şehri değil, fiziksel düzen</li>
-              <li>Krizde vagon fedakârlığı mümkün</li>
-            </ul>
-          </article>
+      <h2 id="sutunlar">2. Temel oynanış sütunları</h2>
+      <h3>2.1 Hareket eden şehir</h3>
+      <p>
+        Tren, modüler bir şehir olarak çalışır. Oyuncu farklı amaçlara sahip vagonlar inşa eder:
+      </p>
+      <ul>
+        <li>Yaşam alanları</li>
+        <li>Atölyeler</li>
+        <li>Gıda üretimi</li>
+        <li>Depolar</li>
+        <li>Hastane</li>
+        <li>Araştırma</li>
+        <li>Enerji</li>
+        <li>Isıtma</li>
+        <li>Keşif</li>
+        <li>Üretim</li>
+        <li>Güvenlik</li>
+        <li>Kaynak işleme</li>
+      </ul>
+      <p>
+        Vagonların yalnızca sahip olunması değil, trenin üzerindeki konumları da önemlidir. Tren basit bir menü üzerinden
+        yönetilen şehir değildir.
+      </p>
+      <p>Trenin fiziksel düzeni doğrudan etkiler:</p>
+      <ul>
+        <li>Isı dağılımı</li>
+        <li>Kaynak akışı</li>
+        <li>Üretim verimliliği</li>
+        <li>İnsanların güvenliği</li>
+      </ul>
 
-          <article class="system">
-            <h3>Keşif &amp; dünya</h3>
-            <p>
-              Haritada duraklar, biyomlar, fırtınalar. Ekipler dışarı çıkar; sağlık, soğuk ve yorgunluk takip edilir.
-            </p>
-            <ul>
-              <li>Terk şehirler, madenler, askeri tesisler, hayatta kalanlar</li>
-              <li>Uzun kalmak = daha fazla kaynak + daha fazla hasar</li>
-              <li>Dinamik hava oynanışı bozar, sadece görsel değildir</li>
-            </ul>
-          </article>
-
-          <article class="system">
-            <h3>Toplum</h3>
-            <p>
-              Umut ve hoşnutsuzluk metreleri, kanun kitabı, sözler, mesai türleri ve eşsiz karakterler.
-              Nüfus sıfırlanırsa oyun biter.
-            </p>
-            <ul>
-              <li>Uyum / Düzen / İnanç yolları (Düzen ↔ İnanç dışlar)</li>
-              <li>Son şans: umut 0 veya hoşnutsuzluk 100</li>
-              <li>İşçi, bilim ve hayatta kalan çıkar grupları</li>
-            </ul>
-          </article>
-        </div>
+      <h2 id="isi">3. Isı sistemi</h2>
+      <p>
+        Isı, Frostline’ın temel altyapı sistemidir. Trenin merkezindeki ana reaktör / ısı üreticisi temel ısıyı sağlar. Isı tren
+        boyunca ilerledikçe azalır.
+      </p>
+      <p>Örnek:</p>
+      <div class="chain" aria-label="Isı zinciri örneği">
+        <span>Reaktör<em>+25°C</em></span><i>→</i>
+        <span>Yaşam<em>+18°C</em></span><i>→</i>
+        <span>Atölye<em>+12°C</em></span><i>→</i>
+        <span>Tarım<em>+5°C</em></span><i>→</i>
+        <span>Depo<em>−5°C</em></span><i>→</i>
+        <span>Keşif<em>−15°C</em></span>
       </div>
-    </section>
+      <p>Isı kaynağından uzaklaştıkça vagonları sıcak tutmak zorlaşır.</p>
+      <p class="note"><strong>Zincir:</strong> Tren büyüklüğü → ısı kaybı → kaynak tüketimi → teknoloji → hayatta kalma</p>
 
-    <section class="section" id="dongu">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <p class="eyebrow">Döngü</p>
-          <h2>Ana oynanış döngüsü</h2>
-          <p>Rota planla → seyahat et → keşfet → inşa et / araştır → ısıyı yönet → daha uzağa git.</p>
-        </div>
-        <div class="loop reveal">
-          <div class="loop__step"><b>01</b><span>Rota planla</span></div>
-          <div class="loop__step"><b>02</b><span>Seyahat &amp; olay</span></div>
-          <div class="loop__step"><b>03</b><span>Durak / keşif</span></div>
-          <div class="loop__step"><b>04</b><span>İnşa &amp; üretim</span></div>
-          <div class="loop__step"><b>05</b><span>Isı &amp; gece hesabı</span></div>
-        </div>
-        <p class="reveal" style="margin-top: 1.25rem; color: var(--muted); max-width: 40rem;">
-          Comparable: Frostpunk, Last Train Home, Frostrain.
-          Tag’ler: City Builder, Post-apocalyptic, Colony Sim, Resource Management, Trains, Simulation.
-        </p>
-        <div class="tags reveal" style="margin-top: 0.85rem;">
-          <span>Crafty-Buildy</span>
-          <span>Replay-Driven</span>
-          <span>Instant-Appeal</span>
-          <span>Singleplayer</span>
-        </div>
+      <h2>4. Isı yönetimi</h2>
+      <p>Oyuncu ısı dağılımını geliştirmek için teknolojiler açabilir:</p>
+      <ul>
+        <li>Isı boruları</li>
+        <li>Buharlı ısıtma</li>
+        <li>Termal yalıtım</li>
+        <li>Isı depolama</li>
+        <li>İkincil ısı üreticileri</li>
+        <li>Isı pompaları</li>
+        <li>Gelişmiş reaktörler</li>
+        <li>Gelişmiş enerji altyapısı</li>
+      </ul>
+      <p>
+        Kararlar stratejiktir: hastaneyi mi sıcak tutacaksın, tarımı mı? Tüm treni düşük sıcaklıkta mı çalıştıracaksın? Yakıtı
+        şimdi mi harcayacaksın, sonraki bölge için mi saklayacaksın?
+      </p>
+      <p>
+        <strong>Kazan aşırı yük:</strong> Kritik soğukta ekstra ısı için kazan zorlanabilir. Ekstra ısı verir; her gece kazan stresi birikir. Stres
+        %100 olursa kazan patlar ve tren biter. Kapatılınca stres düşebilir. Daha fazla ısı = daha fazla risk.
+      </p>
+      <p>Isı yalnızca bir kaynak değil; stratejik bir karar mekanizmasıdır.</p>
+
+      <h2 id="buyume">5. Treni büyütme</h2>
+      <p>
+        Oyuncu küçük bir trenle başlar. Oyun ilerledikçe yeni vagon türleri açılır ve medeniyet büyür. Ancak her yeni
+        vagon yeni bir problem yaratır.
+      </p>
+      <p>Daha fazla vagon demek:</p>
+      <ul>
+        <li>Daha fazla insan</li>
+        <li>Daha fazla yiyecek tüketimi</li>
+        <li>Daha fazla yakıt tüketimi</li>
+        <li>Daha fazla bakım</li>
+        <li>Daha fazla ısı kaybı</li>
+        <li>Daha fazla altyapı ihtiyacı</li>
+        <li>Daha fazla üretim kapasitesi</li>
+      </ul>
+      <p>Dolayısıyla büyümek her zaman avantaj sağlamaz.</p>
+
+      <h2>6. Vagon sistemi</h2>
+      <p>Her vagon farklı bir amaca hizmet eder ve diğer sistemlerle etkileşime girer.</p>
+      <table>
+        <thead>
+          <tr><th>Vagon</th><th>İşlev</th><th>Not</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Yaşam</td><td>Nüfus için alan</td><td>Daha fazla nüfus → yiyecek, su, ısı ihtiyacı ↑</td></tr>
+          <tr><td>Atölye</td><td>Tamir, ekipman, bakım, yükseltme</td><td>Üretim omurgası</td></tr>
+          <tr><td>Tarım / sera</td><td>Gıda</td><td>Isı + su + enerji + iş gücü ister</td></tr>
+          <tr><td>Hastane / revir</td><td>Tedavi, hastalık, iyileşme</td><td>Nüfusun korunması</td></tr>
+          <tr><td>Araştırma</td><td>Teknoloji açma</td><td>Isı, üretim, keşif, enerji, altyapı</td></tr>
+          <tr><td>Depo / tender</td><td>Kaynak saklama</td><td>Treni büyütür → altyapı ihtiyacı ↑</td></tr>
+          <tr><td>Reaktör / enerji</td><td>Enerji ve ısı</td><td>Gelişmiş altyapı</td></tr>
+          <tr><td>Keşif</td><td>Dış ekipler ve ekipman</td><td>Dünya ile köprü</td></tr>
+        </tbody>
+      </table>
+
+      <h2>7. Sistemlerin kombinasyonu</h2>
+      <p>
+        Oyuncuya tek doğru çözüm verilmez. Vagon yerleşimi, ısı, teknoloji, üretim, nüfus, enerji ve keşif birleştirilerek
+        özgün tren yapıları oluşur.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Tip</th><th>Çekirdek</th><th>Avantaj</th><th>Bedel</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Endüstriyel</td><td>Atölye + üretim + enerji</td><td>Güçlü üretim, hızlı tamir</td><td>Yüksek yakıt / ısı</td></tr>
+          <tr><td>Tarım</td><td>Çok sera + su</td><td>Gıda bağımsızlığı</td><td>Yüksek ısı / su</td></tr>
+          <tr><td>Keşif</td><td>Küçük nüfus + keşif + depo</td><td>Hızlı keşif, dış kaynak</td><td>Düşük iç üretim</td></tr>
+        </tbody>
+      </table>
+      <p>Amaç: her oyunda farklı bir tren geliştirebilmek.</p>
+
+      <h2 id="kesif">8. Keşif</h2>
+      <p>
+        Tren ihtiyacının hepsini kendi içinde üretemez. Belirli bölgelerde durup dış dünyayı keşfetmek gerekir.
+      </p>
+      <p>
+        Örnek bölgeler: terk edilmiş şehirler, askeri tesisler, donmuş çiftlikler, araştırma merkezleri, madenler, fabrikalar,
+        terk edilmiş trenler, yeraltı tesisleri, hayatta kalan topluluklar, yakıt depoları.
+      </p>
+      <p>Her bölge farklı kaynak, fırsat ve tehlike içerir.</p>
+
+      <h2>9. Duraklar ve risk / ödül</h2>
+      <p>
+        Tren sürekli hareket etmek zorunda değildir. Haritada belirli noktalarda durulabilir. Durmak fırsat yaratır ama tren
+        ve nüfusu tehlikeye atar.
+      </p>
+      <p>
+        Örnek — terk edilmiş şehir (−45°C): yakıt, hurda, ilaç, yiyecek, teknoloji, hayatta kalanlar bulunabilir. Oyuncu karar
+        verir: güvenli şekilde hemen ayrılmak mı, yoksa daha değerli kaynak için biraz daha kalmak mı?
+      </p>
+      <p>
+        Daha uzun kalmak: daha fazla kaynak + daha fazla soğuk hasarı, yakıt tüketimi, yaralanma ve nüfus kaybı, hava
+        riski.
+      </p>
+
+      <h2>10. Keşif ekipleri</h2>
+      <p>
+        Tren dışına hayatta kalanlardan ekipler gönderilir. Binaları arar, kaynak toplar, insan kurtarır, teknoloji / altyapı
+        parçası çıkarır, gizemli bölgeleri araştırır.
+      </p>
+      <p>
+        Ekip statları: sağlık, vücut sıcaklığı, ekipman, yetenek, yorgunluk. Daha fazla insan keşfi hızlandırır ama potansiyel
+        kaybı artırır.
+      </p>
+
+      <h2>11. Dünya haritası</h2>
+      <p>
+        Dünya donmuş bölgelere ayrılır; oyuncu rotayı belirler: donmuş şehirler, sanayi, dağ geçitleri, askeri bölgeler,
+        tarım alanları, araştırma bölgeleri, harabe yerleşimler.
+      </p>
+      <p>
+        Bazı rotalar fırtına, yıkılmış altyapı, aşırı soğuk, buzlanma veya hasarlı raylar nedeniyle kullanılamaz hale gelebilir.
+      </p>
+
+      <h2>12. Hava durumu ve fırtınalar</h2>
+      <p>
+        Dinamik hava: tren hızı, ısı tüketimi, görüş, keşif, kaynak toplama, nüfus sağlığı.
+      </p>
+      <p>
+        Büyük fırtınalar oyuncuyu durmaya, rota değiştirmeye, operasyonu azaltmaya, vagon feda etmeye veya ısı
+        üretimini artırmaya zorlayabilir. Fırtına yalnızca görsel efekt değil; oynanış problemidir.
+      </p>
+
+      <h2>13. Vagon hasarı ve fedakârlık</h2>
+      <p>Büyük krizlerde bazı vagonlar feda edilebilir.</p>
+      <p class="note">
+        20 VAGON → BÜYÜK FIRTINA → YAKIT KRİTİK → 3 VAGONU AYIR → ISI İHTİYACI ↓ → TREN HAYATTA KALIR
+      </p>
+      <p>Oyuncu sorar: “Bu vagonu kaybetmeye değer mi?” Tren yaşayan bir medeniyet gibi hissettirilir.</p>
+
+      <h2 id="nufus">14. Nüfus sistemi</h2>
+      <p>
+        İnsanlar treninin iş gücüdür. Değerler: sağlık, açlık, sıcaklık, yorgunluk, moral, meslek, yetenek.
+      </p>
+      <p>
+        Çalışma alanları: tarım, üretim, araştırma, bakım, tıp, keşif, güvenlik. İş gücü eksikliği üretimi doğrudan etkiler.
+      </p>
+      <p>Mesai türleri üretimi hızlandırabilir ama bedeli vardır:</p>
+      <table>
+        <thead>
+          <tr><th>Tür</th><th>Üretim</th><th>Bedel</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Normal</td><td>×1</td><td>—</td></tr>
+          <tr><td>Uzatılmış (kanunla açılır)</td><td>×1.4</td><td>Hoşnutsuzluk + kaza / hastalık riski</td></tr>
+          <tr><td>Acil / 24 saat (kanunla açılır)</td><td>×2</td><td>Yüksek hoşnutsuzluk + ölüm riski</td></tr>
+        </tbody>
+      </table>
+      <p>
+        <strong>Eşsiz karakterler:</strong> İsimli mürettebat doğru görevde yetenek sağlar (kazan, revir, sera, keşif, atölye, halk ilişkileri).
+        Yaralanma ve ölüm hem hikâyeyi hem kapasiteyi etkiler; yolda yeni karakterler de katılabilir.
+      </p>
+      <p>Nüfusun sıfırlanması anlık oyun sonudur.</p>
+
+      <h2 id="toplum">15. Sosyal sistem</h2>
+      <p>Trende çıkar grupları oluşabilir:</p>
+      <ul>
+        <li><strong>İşçiler</strong> — yiyecek, güvenli koşullar, daha iyi yaşam alanı</li>
+        <li><strong>Bilim insanları</strong> — araştırma kaynağı, laboratuvar, teknolojik gelişim</li>
+        <li><strong>Hayatta kalanlar</strong> — güvenlik, düzen, koruma</li>
+      </ul>
+      <p>Oyuncunun kararları desteği artırır veya azaltır.</p>
+      <p>Toplum iki ana metre ile okunur:</p>
+      <table>
+        <thead>
+          <tr><th>Metre</th><th>Kritik</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Umut</td><td>0 → kriz (önce son şans, sonra isyan / sürgün)</td></tr>
+          <tr><td>Hoşnutsuzluk</td><td>100 → aynı kriz hattı</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Etkileyenler (örnek): ölüm, açlık, soğuk, söz bozma, ağır mesai, sert kanunlar; kurtarma, ilerleme, söz tutma,
+        olumlu olaylar. Seçim sonrası net geri bildirim (ne arttı / ne azaldı) zorunludur.
+      </p>
+      <p>
+        <strong>Kanun Kitabı:</strong> Toplumun kuralları periyodik olarak imzalanır (ör. 2 günde bir). Üç yol:
+      </p>
+      <table>
+        <thead>
+          <tr><th>Yol</th><th>Örnekler</th><th>Not</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Uyum</td>
+            <td>Çocuk İşçiliği ↔ Çocuk Barınağı; Çorba ↔ Talaş; Uzatılmış / Acil Mesai; Radikal Tedavi; Törenler ↔ Kar Mezarı</td>
+            <td>Erken hayatta kalma takasları</td>
+          </tr>
+          <tr>
+            <td>Düzen</td>
+            <td>Bekçi Devriyesi → Propaganda → Yeni Düzen</td>
+            <td>Hoşnutsuzluğu bastırma; “çizgiyi aşma”</td>
+          </tr>
+          <tr>
+            <td>İnanç</td>
+            <td>Akşam Duaları → İnanç Bekçileri → Yeni İnanç</td>
+            <td>Umutu tutma; “çizgiyi aşma”</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Düzen ve İnanç birbirini dışlar. Geç kanunlar medeniyetin ahlaki yönünü belirler.</p>
+      <p>
+        <strong>Sözler:</strong> Halka verilen taahhütler (yaklaşık 2 gün) — örneğin yaşam vagonları en az “serin” olacak, 3 günlük yemek
+        stoku, hasta sayısı düşecek, kimse ölmeyecek, revir inşa edilecek. Tutulursa umut artar; bozulursa umut düşer,
+        hoşnutsuzluk artar.
+      </p>
+      <p>
+        <strong>Son şans:</strong> Umut 0 veya hoşnutsuzluk 100 olduğunda bir kez 2 günlük son şans verilir (umut ≥ 30 ve
+        hoşnutsuzluk ≤ 70). Başarısızlık isyan / trenden indirilme ile biter.
+      </p>
+
+      <h2>16. Karar sistemi</h2>
+      <p>
+        Kararlar yalnızca sürekli açılan seçim ekranlarından oluşmaz; büyük kısmı sistemlerden doğar.
+      </p>
+      <p>
+        Örnek: hastane daha fazla ısı istiyor. Çözüm tek A/B değil olabilir: daha fazla yakıt yak, başka vagondan ısı çek,
+        yalıtım geliştir, başka vagonu kapat, hastaneyi taşı, yeni teknoloji araştır. Karar doğrudan oynanışın parçasıdır.
+      </p>
+      <p>
+        Yol ve gece olayları etik seçimler de sunar (kömür hırsızı, aç çocuk, mülteciler, grev, umutsuzluk konuşması vb.).
+        Bunlar tek karar kanalı değildir; asıl kararlar ısı, yerleşim, rota ve keşif büyüklüğünden gelir. Olaylar baskıyı
+        kişiselleştirir.
+      </p>
+
+      <h2 id="tech">17. Teknoloji ağacı</h2>
+      <p>Teknoloji, medeniyetin karşılaştığı problemleri çözer:</p>
+      <ul>
+        <li><strong>Isı:</strong> yalıtım, borular, buhar dağıtımı, termal depolama, gelişmiş reaktör</li>
+        <li><strong>Sanayi:</strong> hızlı üretim, araçlar, otomasyon</li>
+        <li><strong>Tarım:</strong> verimli sera, hidroponik, su geri dönüşümü</li>
+        <li><strong>Keşif:</strong> kış ekipmanı, uzun menzil, gelişmiş depolama</li>
+        <li><strong>Altyapı:</strong> enerji dağıtımı, bakım, kaynak verimliliği</li>
+      </ul>
+      <p>Ağaç esas olarak trenin büyümesiyle ortaya çıkan problemleri çözmelidir.</p>
+
+      <h2>18. Kaynak sistemi</h2>
+      <p>Hiçbir kaynak havadan var olmaz. Kaynaklar birbirini tetikleyen zincirdir.</p>
+      <p>Temel kaynaklar: yakıt, yiyecek, su, hurda, metal, elektronik, ilaç, enerji.</p>
+      <p>Örnekler:</p>
+      <ul>
+        <li>Yakıt → Enerji → Isı</li>
+        <li>Su + Enerji + Isı → Yiyecek</li>
+        <li>Hurda + Metal + Enerji → Ekipman</li>
+        <li>Elektronik + Araştırma → Teknoloji</li>
+      </ul>
+
+      <h2>19. Tekrar oynanabilirlik</h2>
+      <p>
+        Değişkenler: kaynak konumu, dünya olayları, hava, teknoloji seçenekleri, hayatta kalan grupları, keşif ödülleri,
+        harita rotaları, tren konfigürasyonu, başlangıç koşulları.
+      </p>
+      <p>
+        Bir oyun büyük endüstriyel medeniyete; biri küçük keşif trenine; biri tarıma; biri yüksek teknoloji ama yakıt krizine
+        dönüşebilir. Amaç, oyuncunun sistemler sayesinde kendi hayatta kalma hikâyesini kurmasıdır.
+      </p>
+
+      <h2 id="dongu">20. Ana oynanış döngüsü</h2>
+      <div class="flow">
+        ROTANI PLANLA
+        <span>↓</span>
+        SEYAHAT ET
+        <span>↓</span>
+        BİR BÖLGE KEŞFET
+        <span>↓</span>
+        TRENİ DURDUR
+        <span>↓</span>
+        DIŞARI ÇIK / KAYNAK ARA
+        <span>↓</span>
+        RİSK / ÖDÜL KARARI
+        <span>↓</span>
+        TRENE DÖN
+        <span>↓</span>
+        İNŞA ET / ÜRET
+        <span>↓</span>
+        ARAŞTIR / GELİŞTİR
+        <span>↓</span>
+        TRENE YENİ VAGONLAR EKLE
+        <span>↓</span>
+        ISI SİSTEMİNİ YÖNET
+        <span>↓</span>
+        DAHA UZAKLARA GİT
       </div>
-    </section>
+      <p>
+        Gün içinde tipik sıra: sabah raporu → mesai / kanun → rota → seyahat (+ yol olayı) → durak / keşif → akşam (inşa
+        / araştırma) → gece hesabı (kömür, yemek, soğuk, iyileşme, ölüm, söz, stres, isyan kontrolü, gece olayı) → fırtına
+        kontrolü → yeni gün.
+      </p>
+      <p>
+        İlerleme: Küçük tren → büyük medeniyet → daha büyük altyapı problemleri → daha gelişmiş teknoloji → daha
+        uzak bölgeler
+      </p>
 
-    <section class="section" id="yol-haritasi">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <p class="eyebrow">Geliştirme</p>
-          <h2>10 aylık yol haritası</h2>
-          <p>
-            Hedef: Steam Early Access. Öncelik içerik yığını değil — ısı, tren mimarisi, nüfus ve keşif
-            etkileşiminden doğan sistem derinliği.
-          </p>
-        </div>
+      <h2 id="gorsel">21. Görsel çekicilik</h2>
+      <p>Kontrast: sıcak medeniyet vs. donmuş dünya.</p>
+      <table>
+        <thead>
+          <tr><th>Tren</th><th>Dış dünya</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sıcak, aydınlık, yoğun, yaşayan, endüstriyel</td>
+            <td>Soğuk, boş, tehlikeli, karanlık, devasa</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Oyuncu trenin gelişimini dışarıdan bakıldığında bile anlayabilmeli. Küçük başlangıç treni zamanla devasa bir
+        hareketli şehre dönüşebilmelidir.
+      </p>
 
-        <div class="roadmap reveal">
-          <article class="phase">
-            <span class="phase__dot" aria-hidden="true"></span>
-            <div class="phase__months">Ay 1–2</div>
-            <div class="phase__body">
-              <strong>Ön üretim</strong>
-              <p>
-                Tasarım kilidi, ısı prototipi, temel tren inşası, kaynak akışı, ilk keşif iskeleti,
-                sanat yönü ve teknik temel.
-              </p>
-            </div>
-          </article>
-          <article class="phase">
-            <span class="phase__dot" aria-hidden="true"></span>
-            <div class="phase__months">Ay 3</div>
-            <div class="phase__body">
-              <strong>Dikey dilim</strong>
-              <p>
-                10–15 dakikalık eksiksiz döngü: seyahat → durak → keşif → dönüş → inşa / ısı kararı.
-              </p>
-            </div>
-          </article>
-          <article class="phase">
-            <span class="phase__dot" aria-hidden="true"></span>
-            <div class="phase__months">Ay 4–6</div>
-            <div class="phase__body">
-              <strong>Alfa</strong>
-              <p>
-                Ana vagon seti, nüfus &amp; mesai, teknoloji, harita, keşif, olaylar, hava,
-                vagon hasarı, ekonomi, umut / kanun sistemi.
-              </p>
-            </div>
-          </article>
-          <article class="phase">
-            <span class="phase__dot" aria-hidden="true"></span>
-            <div class="phase__months">Ay 7–9</div>
-            <div class="phase__body">
-              <strong>Beta</strong>
-              <p>
-                Sonsuz / hayatta kalma modu, içerik genişletme, denge, UI/UX, ses, optimizasyon ve QA.
-              </p>
-            </div>
-          </article>
-          <article class="phase">
-            <span class="phase__dot" aria-hidden="true"></span>
-            <div class="phase__months">Ay 10</div>
-            <div class="phase__body">
-              <strong>Early Access hazırlığı</strong>
-              <p>
-                Bugfix &amp; polish, Steam sayfası, lokalizasyon, fragman, pazarlama varlıkları, performans.
-              </p>
-            </div>
-          </article>
-        </div>
+      <h2>22. Oyun modları</h2>
+      <h3>Hikâye / Sefer Modu (tam sürüm hedefi)</h3>
+      <p>
+        Belirli rota: yeni bölgeler, hayatta kalanlar, teknolojiler, hikâye olayları, çevresel tehditler.
+      </p>
+      <h3>Hayatta Kalma / Sonsuz Mod</h3>
+      <p>
+        Mümkün olduğunca uzun / uzağa hayatta kalma: nüfus, tren büyümesi, teknoloji. Skor mantığı gidilen mesafe ve
+        hayatta kalma süresi üzerine kurulabilir (sabit “varış finali” zorunlu değildir).
+      </p>
 
-        <div class="roadmap-summary reveal">
-          <article>
-            <span>Süre</span>
-            <strong>10 ay</strong>
-          </article>
-          <article>
-            <span>Hedef</span>
-            <strong>Steam EA</strong>
-          </article>
-          <article>
-            <span>Bütçe</span>
-            <strong>80.000 USD</strong>
-          </article>
-        </div>
-      </div>
-    </section>
+      <h2>23. Uzun vadeli içerik</h2>
+      <p>
+        Güncellemelerde: yeni vagonlar, teknolojiler, biyomlar, gruplar, olaylar, senaryolar, hikâye bölümleri.
+      </p>
 
-    <section class="section" id="ea">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <p class="eyebrow">Kapsam</p>
-          <h2>Early Access çıkış</h2>
-          <p>
-            AAA bitmiş city builder değil — EA boyunca genişleyecek güçlü, sistemik bir temel.
-          </p>
-        </div>
-        <ul class="ea-grid reveal">
-          <li>15–20 vagon türü</li>
-          <li>En az 3 bölge / biyom</li>
-          <li>Ana hayatta kalma seferi</li>
-          <li>Sonsuz hayatta kalma modu</li>
-          <li>Isı altyapısı</li>
-          <li>Kaynak &amp; nüfus yönetimi</li>
-          <li>Teknoloji ağacı</li>
-          <li>Keşif &amp; dinamik hava</li>
-          <li>Vagon hasarı / fedakârlık</li>
-          <li>Umut, kanun, sözler</li>
-          <li>Rastgele olaylar</li>
-          <li>Farklı tren stratejileri</li>
-        </ul>
-      </div>
-    </section>
+      <h2>24. Sanat yönü</h2>
+      <p>
+        Stilize edilmiş gerçekçi kıyamet sonrası endüstriyel tasarım. Steampunk gösterisi değil; işlevsel endüstriyel dil
+        (perçinli çelik, ahşap, kanvas, yün, pirinç, buzlanmış borular). Tren görsel olarak ilerlemeyi temsil eder.
+      </p>
 
-    <section class="section" id="ekip">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <p class="eyebrow">Stüdyo</p>
-          <h2>Ekip &amp; bütçe</h2>
-          <p>Bihter Games · Oyun yönetmeni Furkan Çağlar · Çekirdek 2 kişi + freelancer desteği.</p>
-        </div>
+      <h2>25. Hedef kitle</h2>
+      <p>
+        <strong>Ana:</strong> Frostpunk, Against the Storm, Banished, RimWorld oyuncuları; hayatta kalma stratejisi, şehir kurma, yönetim
+        simülasyonu.
+      </p>
+      <p>
+        <strong>İkincil:</strong> Kıyamet sonrası sevenler, tren meraklıları, sistem odaklı strateji oyuncuları, emergent hikâye sevenler.
+      </p>
 
-        <div class="team reveal">
-          <div style="display: grid; gap: 1rem;">
-            <article class="person">
-              <h3>Furkan Çağlar</h3>
-              <p>Lead Programmer / Game Designer — sistemler, gameplay, production, publisher iletişimi.</p>
-            </article>
-            <article class="person">
-              <h3>Arda Ersayar</h3>
-              <p>Game Artist — modeller, karakterler, VFX, UI, pazarlama materyalleri, animasyon.</p>
-            </article>
-            <article class="person">
-              <h3>Freelancer</h3>
-              <p>UI/UX, animasyon, ses / müzik, ek 3D, QA, yerelleştirme, Steam kapsülleri.</p>
-            </article>
-          </div>
-          <article class="budget">
-            <h3>Bütçe dağılımı</h3>
-            <ul>
-              <li><span>Çekirdek ekip</span><b>50.000 $</b></li>
-              <li><span>Freelancer</span><b>15.000 $</b></li>
-              <li><span>Tool lisansları</span><b>5.000 $</b></li>
-              <li><span>Acil durum</span><b>10.000 $</b></li>
-              <li><span>Toplam</span><b>80.000 $</b></li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
+      <h2>26. Oyunun farkı — USP</h2>
+      <ol>
+        <li><strong>Hareket eden şehir</strong> — şehir fiziksel olarak tren.</li>
+        <li><strong>Isı altyapısı</strong> — medeniyetin ne kadar büyüyebileceğini belirleyen omurga.</li>
+        <li><strong>Büyüdükçe zorlaşan sistem</strong> — her vagon yetenek + yeni lojistik/ısı problemi.</li>
+        <li><strong>Riskli keşif</strong> — dünya kaynak verir ama dışarı çıkmak gerçek kayıp riski taşır.</li>
+        <li><strong>Farklı tren yapıları</strong> — farklı kombinasyonlar farklı hayatta kalma stratejileri yaratır.</li>
+        <li><strong>Toplumsal baskı</strong> — umut, hoşnutsuzluk, kanun ve sözler hayatta kalmayı ahlaki kararlarla bağlar.</li>
+      </ol>
+
+      <h2>27. Tark Publisher uyumu</h2>
+      <table>
+        <thead>
+          <tr><th>İlke</th><th>Anlam</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Crafty-Buildy</td>
+            <td>Vagon, ısı, teknoloji, kaynak ve nüfus birleştirilerek sistem kurulur; amaç sadece bina değil bağlantı.</td>
+          </tr>
+          <tr>
+            <td>Replay-Driven</td>
+            <td>Harita, kaynak, olay, rota, teknoloji ve tren yapısı oynanışlar arası değişir.</td>
+          </tr>
+          <tr>
+            <td>Instant-Appeal</td>
+            <td>İlk bakışta okunan fikir: donmuş dünyada ilerleyen sıcak, yaşayan tren şehri.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="yol-haritasi">28. Geliştirme planı — 10 ay</h2>
+      <table>
+        <thead>
+          <tr><th>Faz</th><th>Ay</th><th>Odak</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ön üretim</td>
+            <td>1–2</td>
+            <td>Tasarım, ısı prototipi, tren inşa, kaynak, temel keşif, sanat, teknik</td>
+          </tr>
+          <tr>
+            <td>Dikey dilim</td>
+            <td>3</td>
+            <td>10–15 dk eksiksiz döngü</td>
+          </tr>
+          <tr>
+            <td>Alfa</td>
+            <td>4–6</td>
+            <td>Ana vagonlar, nüfus, tech, harita, keşif, olay, hava, hasar, ekonomi, kanun/umut</td>
+          </tr>
+          <tr>
+            <td>Beta</td>
+            <td>7–9</td>
+            <td>Sonsuz mod, içerik, denge, UI/UX, ses, optimizasyon, QA</td>
+          </tr>
+          <tr>
+            <td>EA hazırlığı</td>
+            <td>10</td>
+            <td>Bugfix, polish, Steam sayfası, lokalizasyon, fragman, pazarlama, performans</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="ea">29. Early Access çıkış kapsamı</h2>
+      <ul>
+        <li>15–20 vagon türü</li>
+        <li>En az 3 bölge / biyom</li>
+        <li>Ana hayatta kalma seferi</li>
+        <li>Sonsuz hayatta kalma modu</li>
+        <li>Isı altyapısı</li>
+        <li>Kaynak yönetimi</li>
+        <li>Nüfus yönetimi (mesai, eşsiz karakterler)</li>
+        <li>Teknoloji ağacı</li>
+        <li>Keşif</li>
+        <li>Dinamik hava</li>
+        <li>Rastgele olaylar</li>
+        <li>Tren bakımı</li>
+        <li>Vagon hasarı / fedakârlık</li>
+        <li>Sosyal sistem (umut, hoşnutsuzluk, kanun kitabı, sözler)</li>
+        <li>Farklı tren kurma stratejileri</li>
+      </ul>
+      <p>
+        Amaç AAA tamamlanmış şehir kurma oyunu çıkarmak değil; Early Access boyunca genişleyecek güçlü ve sistemik
+        bir temel kurmaktır.
+      </p>
+
+      <h2>30. Ekip</h2>
+      <p><strong>Çekirdek ekip — 2 kişi</strong></p>
+      <ol>
+        <li>
+          <strong>Furkan Çağlar — Lead Programmer / Game Designer</strong><br />
+          Oyun yönetimi, temel sistemler, gameplay programlama, sistem tasarımı, production, publisher iletişimi, design.
+        </li>
+        <li>
+          <strong>Arda Ersayar — Game Artist</strong><br />
+          Model ve proplar, karakterler, VFX, UI, pazarlama materyalleri, animasyonlar.
+        </li>
+      </ol>
+      <p>
+        <strong>Freelancer desteği:</strong> UI/UX Artist, Animation, Sound Designer / Composer, ek 3D Artist, QA, yerelleştirme, Steam kapsülleri.
+      </p>
+
+      <h2>31. Bütçe</h2>
+      <p>Hedef geliştirme bütçesi: <strong>80.000 USD</strong></p>
+      <table>
+        <thead>
+          <tr><th>Kategori</th><th>Bütçe</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Çekirdek geliştirme ekibi</td><td>50.000 $</td></tr>
+          <tr><td>Freelancer</td><td>15.000 $</td></tr>
+          <tr><td>Tool lisans ücretleri</td><td>5.000 $</td></tr>
+          <tr><td>Acil durum</td><td>10.000 $</td></tr>
+          <tr><td><strong>TOPLAM</strong></td><td><strong>80.000 $</strong></td></tr>
+        </tbody>
+      </table>
+
+      <h2>32. Geliştirme felsefesi</h2>
+      <p>Öncelik: içerik miktarından çok sistem derinliği.</p>
+      <p>
+        Yüzlerce bina ve senaryolu olay yerine oyun; ısı, kaynaklar, nüfus, umut/kanun, teknoloji, keşif, tren mimarisi ve
+        hava durumu arasındaki etkileşimlerden ilginç durumlar üretmeyi amaçlar. Bu yaklaşım küçük ekibin sınırlı içerikle
+        daha derin bir strateji oyunu kurmasını sağlar.
+      </p>
+
+      <h2>33. Son vizyon</h2>
+      <p>Project Frostline tek bir temel fikir üzerine kuruludur:</p>
+      <p class="quote">Dünya dondu, ama senin medeniyetin <span>hareket etmeye devam ediyor.</span></p>
+      <p>
+        Tren aynı anda şehrin, ekonomin, evin, altyapın ve hayat kaynağın olur. Her vagon medeniyeti güçlendirir; her
+        vagon hayatta kalmayı biraz daha zorlaştırır.
+      </p>
+      <p>
+        Asıl soru: Soğuk her şeyi yok etmeden medeniyetimi ne kadar uzağa götürebilirim?
+      </p>
+    </article>
   </main>
 
   <footer class="footer">
@@ -356,17 +660,5 @@
       </div>
     </div>
   </footer>
-
-  <script>
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) e.target.classList.add('is-in')
-        }
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
-    )
-    document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
-  </script>
 </body>
 </html>
