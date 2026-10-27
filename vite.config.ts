@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 
-/** Serve public/*/index.html for clean directory URLs in dev (Vercel does this in prod). */
+/** Serve public/<dir>/index.html for clean directory URLs in dev (Vercel does this in prod). */
 function publicDirIndex(dirs: string[]): Plugin {
   return {
     name: 'public-dir-index',
