@@ -181,7 +181,6 @@ function App() {
           <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">
             LinkedIn
           </a>
-          <a href="/studio/">Studio</a>
         </div>
         <p className="footer__copy">
           © {new Date().getFullYear()} Bihter Games. All rights reserved.
