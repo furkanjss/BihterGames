@@ -934,19 +934,23 @@ function App() {
                           Devam ettir
                         </button>
                       )}
-                      <button
-                        type="button"
-                        className="btn btn--danger btn--sm"
-                        onClick={() => {
-                          if (
-                            confirm(`“${p.name}” ve tüm görevleri silinsin mi?`)
-                          ) {
-                            void studio.deleteProject(p.id)
-                          }
-                        }}
-                      >
-                        Sil
-                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          className="btn btn--danger btn--sm"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `“${p.name}” ve tüm görevleri silinsin mi?`,
+                              )
+                            ) {
+                              void studio.deleteProject(p.id)
+                            }
+                          }}
+                        >
+                          Sil
+                        </button>
+                      )}
                     </div>
                   </article>
                 )

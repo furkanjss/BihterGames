@@ -24,6 +24,7 @@ import type {
   Task,
   TaskStatus,
 } from './types'
+import { OWNER_EMAIL } from './types'
 
 export type ProjectInput = {
   name: string
@@ -229,6 +230,12 @@ export function useStudio(userId: string | undefined) {
   const deleteProject = useCallback(
     async (id: string) => {
       if (!supabase) return
+      const { data: authData } = await supabase.auth.getUser()
+      const email = (authData.user?.email || '').toLowerCase()
+      if (email !== OWNER_EMAIL.toLowerCase()) {
+        setError('Projeleri yalnızca stüdyo sahibi silebilir.')
+        return
+      }
       const { error: err } = await supabase.from('projects').delete().eq('id', id)
       if (err) {
         setError(err.message)

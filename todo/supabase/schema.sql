@@ -75,9 +75,22 @@ create table if not exists public.projects (
 
 alter table public.projects enable row level security;
 
-create policy "projects_all_authenticated"
-  on public.projects for all to authenticated
+-- Select / insert / update: tüm üyeler. Delete: yalnızca info@bihtergames.com
+create policy "projects_select_authenticated"
+  on public.projects for select to authenticated using (true);
+
+create policy "projects_insert_authenticated"
+  on public.projects for insert to authenticated with check (true);
+
+create policy "projects_update_authenticated"
+  on public.projects for update to authenticated
   using (true) with check (true);
+
+create policy "projects_delete_owner_only"
+  on public.projects for delete to authenticated
+  using (
+    lower(coalesce(auth.jwt() ->> 'email', '')) = 'info@bihtergames.com'
+  );
 
 -- Documents (links)
 create table if not exists public.documents (
