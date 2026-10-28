@@ -1,6 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Project, ProjectKind, ProjectStatus } from './types'
-import { ENGINES, PLATFORMS, PROJECT_STATUSES } from './types'
+import {
+  ENGINES,
+  isParkedProjectStatus,
+  PLATFORMS,
+  PROJECT_STATUSES,
+} from './types'
 
 export type ProjectFormValue = {
   name: string
@@ -48,6 +53,7 @@ export function ProjectModal({
   mode,
   initial,
   defaultKind,
+  canPark = false,
   onClose,
   onSubmit,
 }: {
@@ -55,6 +61,8 @@ export function ProjectModal({
   mode: 'create' | 'edit'
   initial?: Project | null
   defaultKind?: ProjectKind
+  /** info@ only — Beklemede / İptal seçenekleri */
+  canPark?: boolean
   onClose: () => void
   onSubmit: (value: ProjectFormValue) => void
 }) {
@@ -66,6 +74,10 @@ export function ProjectModal({
   }, [open, initial, defaultKind])
 
   if (!open) return null
+
+  const statusOptions = PROJECT_STATUSES.filter(
+    (s) => canPark || !isParkedProjectStatus(s.id) || form.status === s.id,
+  )
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -133,7 +145,7 @@ export function ProjectModal({
                 setForm({ ...form, status: e.target.value as ProjectStatus })
               }
             >
-              {PROJECT_STATUSES.map((s) => (
+              {statusOptions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.label}
                 </option>

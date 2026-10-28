@@ -895,7 +895,7 @@ function App() {
                       >
                         Düzenle
                       </button>
-                      {!parked && (
+                      {isOwner && !parked && (
                         <>
                           <button
                             type="button"
@@ -923,7 +923,7 @@ function App() {
                           </button>
                         </>
                       )}
-                      {parked && (
+                      {isOwner && parked && (
                         <button
                           type="button"
                           className="btn btn--lime btn--sm"
@@ -1109,6 +1109,7 @@ function App() {
         mode={modalMode}
         initial={modalMode === 'edit' ? studio.activeProject : null}
         defaultKind={modalKind}
+        canPark={isOwner}
         onClose={() => setModalOpen(false)}
         onSubmit={(v) => void handleProjectSubmit(v)}
       />

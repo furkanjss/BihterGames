@@ -24,7 +24,15 @@ import type {
   Task,
   TaskStatus,
 } from './types'
-import { OWNER_EMAIL } from './types'
+import { isParkedProjectStatus, OWNER_EMAIL } from './types'
+
+async function currentUserIsOwner(): Promise<boolean> {
+  if (!supabase) return false
+  const { data } = await supabase.auth.getUser()
+  return (
+    (data.user?.email || '').toLowerCase() === OWNER_EMAIL.toLowerCase()
+  )
+}
 
 export type ProjectInput = {
   name: string
@@ -164,13 +172,19 @@ export function useStudio(userId: string | undefined) {
   const addProject = useCallback(
     async (input: ProjectInput): Promise<Project | null> => {
       if (!supabase || !userId) return null
+      const status =
+        input.status ?? (input.kind === 'game' ? 'idea' : 'production')
+      if (isParkedProjectStatus(status) && !(await currentUserIsOwner())) {
+        setError('Beklemeye alma / iptal yalnızca stüdyo sahibi.')
+        return null
+      }
       const { data, error: err } = await supabase
         .from('projects')
         .insert({
           name: input.name.trim() || 'Adsız proje',
           kind: input.kind,
           description: input.description || null,
-          status: input.status ?? (input.kind === 'game' ? 'idea' : 'production'),
+          status,
           engine: input.engine || null,
           platforms: input.platforms ?? [],
           genre: input.genre || null,
@@ -196,6 +210,21 @@ export function useStudio(userId: string | undefined) {
   const updateProject = useCallback(
     async (id: string, input: Partial<ProjectInput>) => {
       if (!supabase) return
+
+      if (input.status !== undefined) {
+        const current = projects.find((p) => p.id === id)
+        const nextParked = isParkedProjectStatus(input.status)
+        const wasParked = isParkedProjectStatus(current?.status)
+        if (nextParked || wasParked) {
+          if (!(await currentUserIsOwner())) {
+            setError(
+              'Beklemeye alma / iptal / devam ettirme yalnızca stüdyo sahibi.',
+            )
+            return
+          }
+        }
+      }
+
       const patch: Record<string, unknown> = {}
       if (input.name !== undefined) patch.name = input.name.trim()
       if (input.kind !== undefined) patch.kind = input.kind
@@ -224,15 +253,13 @@ export function useStudio(userId: string | undefined) {
       const mapped = mapProject(data as Record<string, unknown>)
       setProjects((prev) => prev.map((p) => (p.id === id ? mapped : p)))
     },
-    [],
+    [projects],
   )
 
   const deleteProject = useCallback(
     async (id: string) => {
       if (!supabase) return
-      const { data: authData } = await supabase.auth.getUser()
-      const email = (authData.user?.email || '').toLowerCase()
-      if (email !== OWNER_EMAIL.toLowerCase()) {
+      if (!(await currentUserIsOwner())) {
         setError('Projeleri yalnızca stüdyo sahibi silebilir.')
         return
       }
