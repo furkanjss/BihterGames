@@ -90,6 +90,14 @@ function App() {
     }))
   }, [boardTasks])
 
+  const filteredProjects = useMemo(() => {
+    return studio.projects.filter((p) => {
+      if (projectListFilter === 'all') return true
+      if (projectListFilter === 'active') return !isParkedProjectStatus(p.status)
+      return p.status === projectListFilter
+    })
+  }, [studio.projects, projectListFilter])
+
   if (auth.loading) {
     return <div className="boot">Stüdyo yükleniyor…</div>
   }
@@ -251,14 +259,6 @@ function App() {
 
   const gameProjects = studio.projects.filter((p) => p.kind === 'game')
   const otherProjects = studio.projects.filter((p) => p.kind !== 'game')
-
-  const filteredProjects = useMemo(() => {
-    return studio.projects.filter((p) => {
-      if (projectListFilter === 'all') return true
-      if (projectListFilter === 'active') return !isParkedProjectStatus(p.status)
-      return p.status === projectListFilter
-    })
-  }, [studio.projects, projectListFilter])
 
   async function setProjectStatus(id: string, status: ProjectStatus) {
     await studio.updateProject(id, { status })
