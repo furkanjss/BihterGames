@@ -10,9 +10,10 @@ import { LoginView } from './LoginView'
 import { ManagementView } from './ManagementView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
 import { TaskModal, type TaskFormValue } from './TaskModal'
-import type { Task } from './types'
+import type { ProjectStatus, Task } from './types'
 import {
   GAME_AREAS,
+  isParkedProjectStatus,
   OWNER_EMAIL,
   PERSONAL_AREA,
   PRIORITIES,
@@ -23,6 +24,8 @@ import {
   type ProjectKind,
   type TaskStatus,
 } from './types'
+
+type ProjectListFilter = 'active' | 'on-hold' | 'cancelled' | 'all'
 import { useAuth } from './useAuth'
 import { useStudio } from './useStudio'
 
@@ -34,6 +37,8 @@ function App() {
   const [view, setView] = useState<View>('dashboard')
   const [mineOnly, setMineOnly] = useState(false)
   const [projectFilter, setProjectFilter] = useState<'all' | string>('all')
+  const [projectListFilter, setProjectListFilter] =
+    useState<ProjectListFilter>('active')
   const [title, setTitle] = useState('')
   const [area, setArea] = useState<GameArea>('design')
   const [priority, setPriority] = useState<Priority>('medium')
@@ -246,6 +251,24 @@ function App() {
 
   const gameProjects = studio.projects.filter((p) => p.kind === 'game')
   const otherProjects = studio.projects.filter((p) => p.kind !== 'game')
+
+  const filteredProjects = useMemo(() => {
+    return studio.projects.filter((p) => {
+      if (projectListFilter === 'all') return true
+      if (projectListFilter === 'active') return !isParkedProjectStatus(p.status)
+      return p.status === projectListFilter
+    })
+  }, [studio.projects, projectListFilter])
+
+  async function setProjectStatus(id: string, status: ProjectStatus) {
+    await studio.updateProject(id, { status })
+    if (status === 'on-hold' || status === 'cancelled') {
+      setProjectListFilter(status)
+    } else if (projectListFilter !== 'all') {
+      setProjectListFilter('active')
+    }
+  }
+
   async function submitIdea(e: FormEvent) {
     e.preventDefault()
     if (!ideaTitle.trim()) return
@@ -316,11 +339,12 @@ function App() {
               const open = studio.tasks.filter(
                 (t) => t.projectId === p.id && t.status !== 'done',
               ).length
+              const parked = isParkedProjectStatus(p.status)
               return (
                 <li key={p.id}>
                   <button
                     type="button"
-                    className={`project ${studio.activeProjectId === p.id ? 'is-active' : ''}`}
+                    className={`project ${studio.activeProjectId === p.id ? 'is-active' : ''} ${parked ? 'is-parked' : ''}`}
                     onClick={() => {
                       studio.setActiveProjectId(p.id)
                       setProjectFilter(p.id)
@@ -489,25 +513,28 @@ function App() {
             <section className="dash-section">
               <h2>Projeler</h2>
               <div className="dash-projects">
-                {studio.projects.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className="dash-project"
-                    onClick={() => {
-                      studio.setActiveProjectId(p.id)
-                      setView('projects')
-                    }}
-                  >
-                    <strong>{p.name}</strong>
-                    <span>
-                      {PROJECT_STATUSES.find((s) => s.id === p.status)?.label ??
-                        p.status}
-                    </span>
-                  </button>
-                ))}
-                {studio.projects.length === 0 && (
-                  <p className="muted">Henüz proje yok — soldan ekle.</p>
+                {studio.projects
+                  .filter((p) => !isParkedProjectStatus(p.status))
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className="dash-project"
+                      onClick={() => {
+                        studio.setActiveProjectId(p.id)
+                        setView('projects')
+                      }}
+                    >
+                      <strong>{p.name}</strong>
+                      <span>
+                        {PROJECT_STATUSES.find((s) => s.id === p.status)
+                          ?.label ?? p.status}
+                      </span>
+                    </button>
+                  ))}
+                {studio.projects.filter((p) => !isParkedProjectStatus(p.status))
+                  .length === 0 && (
+                  <p className="muted">Henüz aktif proje yok — soldan ekle.</p>
                 )}
               </div>
             </section>
@@ -785,17 +812,47 @@ function App() {
               </button>
             </header>
 
+            <div className="project-filters">
+              {(
+                [
+                  ['active', 'Aktif'],
+                  ['on-hold', 'Beklemede'],
+                  ['cancelled', 'İptal'],
+                  ['all', 'Tümü'],
+                ] as [ProjectListFilter, string][]
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`pill ${projectListFilter === id ? 'is-active' : ''}`}
+                  onClick={() => setProjectListFilter(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="project-grid">
-              {studio.projects.map((p) => {
+              {filteredProjects.map((p) => {
                 const open = studio.tasks.filter(
                   (t) => t.projectId === p.id && t.status !== 'done',
                 ).length
                 const docs = studio.documents.filter((d) => d.projectId === p.id)
+                const parked = isParkedProjectStatus(p.status)
+                const statusClass =
+                  p.status === 'on-hold'
+                    ? 'is-on-hold'
+                    : p.status === 'cancelled'
+                      ? 'is-cancelled'
+                      : ''
                 return (
-                  <article key={p.id} className="project-card">
+                  <article
+                    key={p.id}
+                    className={`project-card ${statusClass}`}
+                  >
                     <div className="project-card__top">
                       <h2>{p.name}</h2>
-                      <span className="tag">
+                      <span className={`tag tag--${p.status ?? 'idea'}`}>
                         {PROJECT_STATUSES.find((s) => s.id === p.status)?.label}
                       </span>
                     </div>
@@ -838,6 +895,45 @@ function App() {
                       >
                         Düzenle
                       </button>
+                      {!parked && (
+                        <>
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            onClick={() =>
+                              void setProjectStatus(p.id, 'on-hold')
+                            }
+                          >
+                            Beklemeye al
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  `“${p.name}” iptal edilsin mi? (Silinmez; İptal listesine gider.)`,
+                                )
+                              ) {
+                                void setProjectStatus(p.id, 'cancelled')
+                              }
+                            }}
+                          >
+                            İptal et
+                          </button>
+                        </>
+                      )}
+                      {parked && (
+                        <button
+                          type="button"
+                          className="btn btn--lime btn--sm"
+                          onClick={() =>
+                            void setProjectStatus(p.id, 'production')
+                          }
+                        >
+                          Devam ettir
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="btn btn--danger btn--sm"
@@ -855,6 +951,11 @@ function App() {
                   </article>
                 )
               })}
+              {filteredProjects.length === 0 && (
+                <p className="muted project-grid__empty">
+                  Bu filtrede proje yok.
+                </p>
+              )}
             </div>
           </>
         )}

@@ -53,7 +53,15 @@ create table if not exists public.projects (
   kind text not null default 'game' check (kind in ('game', 'personal')),
   description text,
   status text default 'idea' check (
-    status in ('idea', 'preprod', 'production', 'polish', 'released', 'on-hold')
+    status in (
+      'idea',
+      'preprod',
+      'production',
+      'polish',
+      'released',
+      'on-hold',
+      'cancelled'
+    )
   ),
   engine text,
   platforms text[] default '{}',

@@ -7,6 +7,16 @@ export type ProjectStatus =
   | 'polish'
   | 'released'
   | 'on-hold'
+  | 'cancelled'
+
+/** Aktif pipeline dışı (yan liste / filtre) */
+export const PARKED_PROJECT_STATUSES: ProjectStatus[] = ['on-hold', 'cancelled']
+
+export function isParkedProjectStatus(
+  status: ProjectStatus | undefined,
+): boolean {
+  return status === 'on-hold' || status === 'cancelled'
+}
 
 export type GameArea =
   | 'design'
@@ -158,6 +168,7 @@ export const PROJECT_STATUSES: { id: ProjectStatus; label: string }[] = [
   { id: 'polish', label: 'Cilalama' },
   { id: 'released', label: 'Yayında' },
   { id: 'on-hold', label: 'Beklemede' },
+  { id: 'cancelled', label: 'İptal' },
 ]
 
 export const PLATFORMS = ['PC', 'Steam', 'Mobil', 'Konsol', 'Web', 'VR'] as const
