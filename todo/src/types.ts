@@ -18,16 +18,7 @@ export function isParkedProjectStatus(
   return status === 'on-hold' || status === 'cancelled'
 }
 
-export type GameArea =
-  | 'design'
-  | 'code'
-  | 'art'
-  | 'audio'
-  | 'narrative'
-  | 'playtest'
-  | 'marketing'
-  | 'production'
-  | 'personal'
+export type GameArea = 'design' | 'art' | 'development' | 'management'
 
 export type Priority = 'low' | 'medium' | 'high'
 
@@ -137,17 +128,20 @@ export interface Task {
 }
 
 export const GAME_AREAS: { id: GameArea; label: string }[] = [
-  { id: 'design', label: 'Tasarım' },
-  { id: 'code', label: 'Kod' },
-  { id: 'art', label: 'Sanat' },
-  { id: 'audio', label: 'Ses' },
-  { id: 'narrative', label: 'Hikâye' },
-  { id: 'playtest', label: 'Playtest' },
-  { id: 'marketing', label: 'Pazarlama' },
-  { id: 'production', label: 'Prodüksiyon' },
+  { id: 'design', label: 'Design' },
+  { id: 'art', label: 'Art' },
+  { id: 'development', label: 'Development' },
+  { id: 'management', label: 'Management' },
 ]
 
-export const PERSONAL_AREA = { id: 'personal' as const, label: 'Kişisel' }
+/** Map legacy area strings from older tasks into the 4 current options */
+export function normalizeGameArea(raw: unknown): GameArea {
+  const v = String(raw ?? 'design')
+  if (v === 'art' || v === 'audio') return 'art'
+  if (v === 'development' || v === 'code' || v === 'production') return 'development'
+  if (v === 'management' || v === 'marketing' || v === 'personal') return 'management'
+  return 'design'
+}
 
 export const PRIORITIES: { id: Priority; label: string }[] = [
   { id: 'low', label: 'Düşük' },

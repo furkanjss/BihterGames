@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
   GAME_AREAS,
-  PERSONAL_AREA,
   PRIORITIES,
   TASK_STATUSES,
   type GameArea,
@@ -126,7 +125,7 @@ export function TaskModal({
                   setForm({ ...form, area: e.target.value as GameArea })
                 }
               >
-                {[...GAME_AREAS, PERSONAL_AREA].map((a) => (
+                {GAME_AREAS.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.label}
                   </option>

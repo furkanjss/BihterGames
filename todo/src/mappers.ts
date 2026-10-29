@@ -1,11 +1,12 @@
-import type {
-  Document,
-  FinanceEntry,
-  Idea,
-  ImportantLink,
-  Profile,
-  Project,
-  Task,
+import {
+  normalizeGameArea,
+  type Document,
+  type FinanceEntry,
+  type Idea,
+  type ImportantLink,
+  type Profile,
+  type Project,
+  type Task,
 } from './types'
 
 export function mapProfile(row: Record<string, unknown>): Profile {
@@ -42,7 +43,7 @@ export function mapTask(row: Record<string, unknown>): Task {
     id: String(row.id),
     projectId: String(row.project_id),
     title: String(row.title),
-    area: (row.area as Task['area']) ?? 'design',
+    area: normalizeGameArea(row.area),
     priority: (row.priority as Task['priority']) ?? 'medium',
     status: (row.status as Task['status']) ?? 'todo',
     assigneeId: row.assignee_id ? String(row.assignee_id) : null,

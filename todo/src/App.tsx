@@ -15,7 +15,6 @@ import {
   GAME_AREAS,
   isParkedProjectStatus,
   OWNER_EMAIL,
-  PERSONAL_AREA,
   PRIORITIES,
   PROJECT_STATUSES,
   TASK_STATUSES,
@@ -664,7 +663,7 @@ function App() {
                   value={area}
                   onChange={(e) => setArea(e.target.value as GameArea)}
                 >
-                  {[...GAME_AREAS, PERSONAL_AREA].map((a) => (
+                  {GAME_AREAS.map((a) => (
                     <option key={a.id} value={a.id}>
                       {a.label}
                     </option>
@@ -723,9 +722,8 @@ function App() {
                         (p) => p.id === task.projectId,
                       )
                       const areaLabel =
-                        [...GAME_AREAS, PERSONAL_AREA].find(
-                          (a) => a.id === task.area,
-                        )?.label ?? task.area
+                        GAME_AREAS.find((a) => a.id === task.area)?.label ??
+                        task.area
                       const who = studio.profileName(task.assigneeId)
                       const showBefore =
                         dragOverCol === col.id &&
