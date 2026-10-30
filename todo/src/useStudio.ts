@@ -748,43 +748,60 @@ export function useStudio(userId: string | undefined) {
 
   const setProjectMember = useCallback(
     async (projectId: string, memberId: string, assigned: boolean) => {
-      if (!supabase) return
+      const client = supabase
+      if (!client) return
       if (!(await currentUserIsOwner())) {
         setError('Proje ataması yalnızca stüdyo sahibi.')
         return
       }
-      if (assigned) {
-        const { error: err } = await supabase.from('project_members').insert({
-          project_id: projectId,
-          user_id: memberId,
-        })
-        if (err) {
-          setError(err.message)
-          return
+
+      const exists = memberships.some(
+        (m) => m.projectId === projectId && m.userId === memberId,
+      )
+      if (assigned === exists) return
+
+      // Optimistic UI
+      setMemberships((prev) => {
+        if (assigned) {
+          if (prev.some((m) => m.projectId === projectId && m.userId === memberId))
+            return prev
+          return [...prev, { projectId, userId: memberId }]
         }
-        setMemberships((prev) =>
-          prev.some((m) => m.projectId === projectId && m.userId === memberId)
-            ? prev
-            : [...prev, { projectId, userId: memberId }],
+        return prev.filter(
+          (m) => !(m.projectId === projectId && m.userId === memberId),
         )
+      })
+
+      if (assigned) {
+        const { error: err } = await client.from('project_members').upsert(
+          { project_id: projectId, user_id: memberId },
+          { onConflict: 'project_id,user_id', ignoreDuplicates: true },
+        )
+        if (err && err.code !== '23505') {
+          setError(err.message)
+          setMemberships((prev) =>
+            prev.filter(
+              (m) => !(m.projectId === projectId && m.userId === memberId),
+            ),
+          )
+        }
       } else {
-        const { error: err } = await supabase
+        const { error: err } = await client
           .from('project_members')
           .delete()
           .eq('project_id', projectId)
           .eq('user_id', memberId)
         if (err) {
           setError(err.message)
-          return
+          setMemberships((prev) =>
+            prev.some((m) => m.projectId === projectId && m.userId === memberId)
+              ? prev
+              : [...prev, { projectId, userId: memberId }],
+          )
         }
-        setMemberships((prev) =>
-          prev.filter(
-            (m) => !(m.projectId === projectId && m.userId === memberId),
-          ),
-        )
       }
     },
-    [],
+    [memberships],
   )
 
   return {
