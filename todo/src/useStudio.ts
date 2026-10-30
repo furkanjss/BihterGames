@@ -7,6 +7,7 @@ import {
   mapProfile,
   mapProject,
   mapTask,
+  mapStaffRate,
   mapWorkLog,
 } from './mappers'
 import { supabase } from './supabase'
@@ -24,6 +25,7 @@ import type {
   ProjectStatus,
   Task,
   TaskStatus,
+  StaffRate,
   WorkLog,
 } from './types'
 import { isParkedProjectStatus, OWNER_EMAIL } from './types'
@@ -68,6 +70,7 @@ export function useStudio(userId: string | undefined) {
   const [links, setLinks] = useState<ImportantLink[]>([])
   const [finance, setFinance] = useState<FinanceEntry[]>([])
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([])
+  const [staffRates, setStaffRates] = useState<StaffRate[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [memberships, setMemberships] = useState<
     { projectId: string; userId: string }[]
@@ -79,7 +82,7 @@ export function useStudio(userId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!supabase || !userId) return
     setError(null)
-    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes, mRes, wRes] =
+    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes, mRes, wRes, rRes] =
       await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: true }),
       supabase
@@ -103,6 +106,7 @@ export function useStudio(userId: string | undefined) {
         .from('work_logs')
         .select('*')
         .order('work_date', { ascending: false }),
+      supabase.from('staff_rates').select('*'),
     ])
 
     if (pRes.error || tRes.error || dRes.error || prRes.error) {
@@ -162,6 +166,13 @@ export function useStudio(userId: string | undefined) {
             mapWorkLog(r as Record<string, unknown>),
           ),
     )
+    setStaffRates(
+      rRes.error
+        ? []
+        : (rRes.data ?? []).map((r) =>
+            mapStaffRate(r as Record<string, unknown>),
+          ),
+    )
     setActiveProjectId((prev) => {
       if (prev && nextProjects.some((p) => p.id === prev)) return prev
       return nextProjects[0]?.id || ''
@@ -178,6 +189,7 @@ export function useStudio(userId: string | undefined) {
       setLinks([])
       setFinance([])
       setWorkLogs([])
+      setStaffRates([])
       setProfiles([])
       setMemberships([])
       setReady(false)
@@ -730,6 +742,40 @@ export function useStudio(userId: string | undefined) {
     setWorkLogs((prev) => prev.filter((l) => l.id !== id))
   }, [])
 
+  const setStaffRate = useCallback(
+    async (userIdTarget: string, hourlyRate: number) => {
+      if (!supabase) return
+      if (!(await currentUserIsOwner())) {
+        setError('Saatlik ücret yalnızca stüdyo sahibi.')
+        return
+      }
+      if (Number.isNaN(hourlyRate) || hourlyRate < 0) return
+      const { data, error: err } = await supabase
+        .from('staff_rates')
+        .upsert(
+          {
+            user_id: userIdTarget,
+            hourly_rate: hourlyRate,
+            currency: 'TRY',
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' },
+        )
+        .select('*')
+        .single()
+      if (err) {
+        setError(err.message)
+        return
+      }
+      const mapped = mapStaffRate(data as Record<string, unknown>)
+      setStaffRates((prev) => {
+        const without = prev.filter((r) => r.userId !== mapped.userId)
+        return [...without, mapped]
+      })
+    },
+    [],
+  )
+
   const profileName = useCallback(
     (id: string | null | undefined) => {
       if (!id) return 'Atanmamış'
@@ -814,6 +860,7 @@ export function useStudio(userId: string | undefined) {
     links,
     finance,
     workLogs,
+    staffRates,
     profiles,
     memberships,
     activeProjectId,
@@ -839,6 +886,7 @@ export function useStudio(userId: string | undefined) {
     deleteFinance,
     upsertWorkLog,
     deleteWorkLog,
+    setStaffRate,
     profileName,
     projectMemberIds,
     setProjectMember,

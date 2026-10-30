@@ -6,8 +6,15 @@ import {
   type FinanceEntry,
   type FinanceEntryType,
   type Profile,
+  type StaffRate,
   type WorkLog,
 } from './types'
+
+const dayFmt = new Intl.DateTimeFormat('tr-TR', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
 
 const money = formatMoney
 const FORECAST_MONTHS = 10
@@ -33,14 +40,17 @@ function uniqueRecurring(entries: FinanceEntry[]): FinanceEntry[] {
 export function ManagementView({
   finance,
   workLogs,
+  staffRates,
   profiles,
   onAdd,
   onDelete,
   onDeleteWorkLog,
+  onSetStaffRate,
   profileName,
 }: {
   finance: FinanceEntry[]
   workLogs: WorkLog[]
+  staffRates: StaffRate[]
   profiles: Profile[]
   onAdd: (input: {
     entryType: FinanceEntryType
@@ -53,6 +63,7 @@ export function ManagementView({
   }) => Promise<void> | void
   onDelete: (id: string) => Promise<void> | void
   onDeleteWorkLog: (id: string) => Promise<void> | void
+  onSetStaffRate: (userId: string, hourlyRate: number) => Promise<void> | void
   profileName: (id: string | null | undefined) => string
 }) {
   const [entryType, setEntryType] = useState<FinanceEntryType>('expense')
@@ -69,6 +80,7 @@ export function ManagementView({
     new Date().toISOString().slice(0, 7),
   )
   const [hoursUser, setHoursUser] = useState<'all' | string>('all')
+  const [rateDrafts, setRateDrafts] = useState<Record<string, string>>({})
 
   const totals = useMemo(() => {
     let income = 0
@@ -169,20 +181,64 @@ export function ManagementView({
     [workLogs, hoursMonth, hoursUser],
   )
 
+  const rateFor = (userId: string) =>
+    staffRates.find((r) => r.userId === userId)?.hourlyRate ?? 0
+
   const hoursByUser = useMemo(() => {
     const map = new Map<string, number>()
     for (const l of workLogs) {
       if (!l.workDate.startsWith(hoursMonth)) continue
       map.set(l.userId, (map.get(l.userId) ?? 0) + l.hours)
     }
-    return [...map.entries()]
-      .map(([userId, hours]) => ({
-        userId,
-        hours,
-        name: profileName(userId),
-      }))
-      .sort((a, b) => b.hours - a.hours)
-  }, [workLogs, hoursMonth, profileName])
+    const ids = new Set<string>([
+      ...profiles.map((p) => p.id),
+      ...map.keys(),
+    ])
+    return [...ids]
+      .map((userId) => {
+        const hours = map.get(userId) ?? 0
+        const rate = rateFor(userId)
+        return {
+          userId,
+          hours,
+          rate,
+          pay: hours * rate,
+          name: profileName(userId),
+        }
+      })
+      .filter((row) =>
+        hoursUser === 'all' ? true : row.userId === hoursUser,
+      )
+      .sort((a, b) => b.pay - a.pay || b.hours - a.hours)
+  }, [workLogs, hoursMonth, hoursUser, profiles, staffRates, profileName])
+
+  const monthPayTotal = useMemo(
+    () => hoursByUser.reduce((s, r) => s + r.pay, 0),
+    [hoursByUser],
+  )
+
+  const monthHoursTotal = useMemo(
+    () => hoursByUser.reduce((s, r) => s + r.hours, 0),
+    [hoursByUser],
+  )
+
+  function rateDraftValue(userId: string): string {
+    if (rateDrafts[userId] !== undefined) return rateDrafts[userId]
+    const rate = rateFor(userId)
+    return rate > 0 ? formatMoneyInput(String(Math.round(rate))) : ''
+  }
+
+  async function saveRate(userId: string) {
+    const raw = rateDraftValue(userId)
+    const n = parseMoney(raw || '0')
+    if (Number.isNaN(n) || n < 0) return
+    await onSetStaffRate(userId, n)
+    setRateDrafts((prev) => {
+      const next = { ...prev }
+      delete next[userId]
+      return next
+    })
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -316,66 +372,139 @@ export function ManagementView({
         </div>
       </form>
 
-      <section className="dash-section">
-        <h2>Çalışma saatleri</h2>
-        <div className="filters">
-          <select
-            value={hoursMonth}
-            onChange={(e) => setHoursMonth(e.target.value)}
-            aria-label="Saat ayı"
-          >
-            {hoursMonths.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-          <select
-            value={hoursUser}
-            onChange={(e) => setHoursUser(e.target.value)}
-            aria-label="Çalışan"
-          >
-            <option value="all">Tüm çalışanlar</option>
-            {profiles.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.displayName || p.id.slice(0, 6)}
-              </option>
-            ))}
-          </select>
+      <section className="dash-section mgmt__hours">
+        <div className="mgmt__hours-head">
+          <div>
+            <p className="eyebrow">Payroll</p>
+            <h2>Çalışma saatleri</h2>
+            <p className="muted">
+              Saatlik ücret gir; ay sonu tutar = saat × ücret.
+            </p>
+          </div>
+          <div className="mgmt__hours-filters">
+            <select
+              value={hoursMonth}
+              onChange={(e) => setHoursMonth(e.target.value)}
+              aria-label="Saat ayı"
+            >
+              {hoursMonths.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <select
+              value={hoursUser}
+              onChange={(e) => setHoursUser(e.target.value)}
+              aria-label="Çalışan"
+            >
+              <option value="all">Tüm çalışanlar</option>
+              {profiles.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.displayName || p.id.slice(0, 6)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="mgmt__hours-totals">
+        <div className="mgmt__hours-summary">
+          <article>
+            <span>Toplam saat</span>
+            <strong>{monthHoursTotal.toFixed(1)}</strong>
+          </article>
+          <article>
+            <span>Aylık tutar</span>
+            <strong className="pos">{money(monthPayTotal)}</strong>
+          </article>
+        </div>
+
+        <div className="mgmt__hours-grid">
           {hoursByUser.length === 0 && (
-            <p className="muted pad">Bu ay bildirim yok.</p>
+            <p className="muted">Henüz çalışan veya bildirim yok.</p>
           )}
           {hoursByUser.map((row) => (
-            <article key={row.userId} className="mgmt__hours-total">
-              <strong>{row.name}</strong>
-              <span>{row.hours.toFixed(1)} saat</span>
+            <article key={row.userId} className="mgmt__staff-card">
+              <header>
+                <strong>{row.name}</strong>
+                <span className="muted">{hoursMonth}</span>
+              </header>
+              <div className="mgmt__staff-stats">
+                <div>
+                  <span>Saat</span>
+                  <b>{row.hours.toFixed(1)}</b>
+                </div>
+                <div>
+                  <span>Aylık tutar</span>
+                  <b className="pos">{money(row.pay)}</b>
+                </div>
+              </div>
+              <label className="mgmt__rate">
+                <span>Saatlik ücret (₺)</span>
+                <div className="mgmt__rate-row">
+                  <input
+                    value={rateDraftValue(row.userId)}
+                    onChange={(e) =>
+                      setRateDrafts((prev) => ({
+                        ...prev,
+                        [row.userId]: formatMoneyInput(e.target.value),
+                      }))
+                    }
+                    onBlur={() => void saveRate(row.userId)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        void saveRate(row.userId)
+                      }
+                    }}
+                    inputMode="numeric"
+                    placeholder="örn. 500"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => void saveRate(row.userId)}
+                  >
+                    Kaydet
+                  </button>
+                </div>
+              </label>
             </article>
           ))}
         </div>
 
+        <h3 className="mgmt__hours-sub">Günlük kayıtlar</h3>
         <ul className="mgmt__list">
-          {hoursInMonth.map((l) => (
-            <li key={l.id} className="mgmt__row">
-              <div>
-                <p>
-                  <span className="mgmt__type">{profileName(l.userId)}</span>{' '}
-                  {l.workDate}
-                </p>
-                {l.notes && <p className="muted">{l.notes}</p>}
-              </div>
-              <strong>{l.hours} sa</strong>
-              <button
-                type="button"
-                className="chip chip--danger"
-                onClick={() => void onDeleteWorkLog(l.id)}
-              >
-                Sil
-              </button>
-            </li>
-          ))}
+          {hoursInMonth.length === 0 && (
+            <li className="muted">Bu ay bildirim yok.</li>
+          )}
+          {hoursInMonth.map((l) => {
+            const rate = rateFor(l.userId)
+            return (
+              <li key={l.id} className="mgmt__row">
+                <div>
+                  <p>
+                    <span className="mgmt__type">{profileName(l.userId)}</span>{' '}
+                    {dayFmt.format(new Date(`${l.workDate}T12:00:00`))}
+                  </p>
+                  {l.notes && <p className="muted">{l.notes}</p>}
+                </div>
+                <div className="mgmt__hours-cell">
+                  <strong>{l.hours} sa</strong>
+                  {rate > 0 && (
+                    <span className="muted">{money(l.hours * rate)}</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="chip chip--danger"
+                  onClick={() => void onDeleteWorkLog(l.id)}
+                >
+                  Sil
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </section>
 

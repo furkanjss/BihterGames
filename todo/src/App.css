@@ -988,27 +988,148 @@
   padding-bottom: 1.5rem;
 }
 
-.mgmt__hours-totals {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-  gap: 0.5rem;
+.mgmt__hours-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
   padding: 0 1.5rem 1rem;
 }
 
-.mgmt__hours-total {
+.mgmt__hours-head h2 {
+  margin: 0.2rem 0 0.35rem;
+}
+
+.mgmt__hours-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mgmt__hours-summary {
   display: grid;
-  gap: 0.25rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 0 1.5rem 1rem;
+}
+
+.mgmt__hours-summary article {
+  padding: 1rem 1.1rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: linear-gradient(165deg, rgba(217, 255, 58, 0.06), transparent 60%),
+    var(--panel);
+  display: grid;
+  gap: 0.3rem;
+}
+
+.mgmt__hours-summary span {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mgmt__hours-summary strong {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+}
+
+.mgmt__hours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.mgmt__staff-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.9rem;
   border: 1px solid var(--line);
   background: var(--panel);
 }
 
-.mgmt__hours-total span {
-  color: var(--lime);
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
+.mgmt__staff-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.mgmt__staff-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.mgmt__staff-stats div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.55rem;
+  background: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.mgmt__staff-stats span {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mgmt__staff-stats b {
+  font-size: 1.05rem;
+}
+
+.mgmt__rate {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mgmt__rate > span {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mgmt__rate-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.mgmt__rate-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--snow);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.mgmt__rate-row input:focus {
+  outline: none;
+  border-color: rgba(217, 255, 58, 0.55);
+}
+
+.mgmt__hours-sub {
+  padding: 0 1.5rem 0.65rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.mgmt__hours-cell {
+  display: grid;
+  gap: 0.15rem;
+  text-align: right;
 }
 
 .hours__form {

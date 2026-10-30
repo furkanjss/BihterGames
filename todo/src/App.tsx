@@ -1097,10 +1097,12 @@ function App() {
           <ManagementView
             finance={studio.finance}
             workLogs={studio.workLogs}
+            staffRates={studio.staffRates}
             profiles={studio.profiles}
             onAdd={studio.addFinance}
             onDelete={studio.deleteFinance}
             onDeleteWorkLog={studio.deleteWorkLog}
+            onSetStaffRate={studio.setStaffRate}
             profileName={studio.profileName}
           />
         )}

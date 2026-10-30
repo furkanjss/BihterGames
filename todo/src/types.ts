@@ -84,6 +84,12 @@ export interface WorkLog {
   createdAt: string
 }
 
+export interface StaffRate {
+  userId: string
+  hourlyRate: number
+  currency: string
+}
+
 export type FinanceEntryType = 'income' | 'expense' | 'payroll'
 
 export interface FinanceEntry {

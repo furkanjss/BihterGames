@@ -7,6 +7,7 @@ import {
   type Profile,
   type Project,
   type Task,
+  type StaffRate,
   type WorkLog,
 } from './types'
 
@@ -111,5 +112,13 @@ export function mapWorkLog(row: Record<string, unknown>): WorkLog {
     hours: Number(row.hours ?? 0),
     notes: row.notes ? String(row.notes) : undefined,
     createdAt: String(row.created_at ?? ''),
+  }
+}
+
+export function mapStaffRate(row: Record<string, unknown>): StaffRate {
+  return {
+    userId: String(row.user_id),
+    hourlyRate: Number(row.hourly_rate ?? 0),
+    currency: String(row.currency ?? 'TRY'),
   }
 }
