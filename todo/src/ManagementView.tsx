@@ -5,6 +5,8 @@ import {
   FINANCE_TYPES,
   type FinanceEntry,
   type FinanceEntryType,
+  type Profile,
+  type WorkLog,
 } from './types'
 
 const money = formatMoney
@@ -30,10 +32,16 @@ function uniqueRecurring(entries: FinanceEntry[]): FinanceEntry[] {
 
 export function ManagementView({
   finance,
+  workLogs,
+  profiles,
   onAdd,
   onDelete,
+  onDeleteWorkLog,
+  profileName,
 }: {
   finance: FinanceEntry[]
+  workLogs: WorkLog[]
+  profiles: Profile[]
   onAdd: (input: {
     entryType: FinanceEntryType
     label: string
@@ -44,6 +52,8 @@ export function ManagementView({
     recurring?: boolean
   }) => Promise<void> | void
   onDelete: (id: string) => Promise<void> | void
+  onDeleteWorkLog: (id: string) => Promise<void> | void
+  profileName: (id: string | null | undefined) => string
 }) {
   const [entryType, setEntryType] = useState<FinanceEntryType>('expense')
   const [label, setLabel] = useState('')
@@ -55,6 +65,10 @@ export function ManagementView({
   const [notes, setNotes] = useState('')
   const [recurring, setRecurring] = useState(false)
   const [monthFilter, setMonthFilter] = useState<'all' | string>('all')
+  const [hoursMonth, setHoursMonth] = useState(() =>
+    new Date().toISOString().slice(0, 7),
+  )
+  const [hoursUser, setHoursUser] = useState<'all' | string>('all')
 
   const totals = useMemo(() => {
     let income = 0
@@ -138,6 +152,37 @@ export function ManagementView({
         net: t.income - t.expense - t.payroll,
       }))
   }, [finance])
+
+  const hoursMonths = useMemo(() => {
+    const set = new Set(workLogs.map((l) => l.workDate.slice(0, 7)))
+    set.add(new Date().toISOString().slice(0, 7))
+    return [...set].sort().reverse()
+  }, [workLogs])
+
+  const hoursInMonth = useMemo(
+    () =>
+      workLogs
+        .filter((l) => l.workDate.startsWith(hoursMonth))
+        .filter((l) => (hoursUser === 'all' ? true : l.userId === hoursUser))
+        .slice()
+        .sort((a, b) => b.workDate.localeCompare(a.workDate)),
+    [workLogs, hoursMonth, hoursUser],
+  )
+
+  const hoursByUser = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const l of workLogs) {
+      if (!l.workDate.startsWith(hoursMonth)) continue
+      map.set(l.userId, (map.get(l.userId) ?? 0) + l.hours)
+    }
+    return [...map.entries()]
+      .map(([userId, hours]) => ({
+        userId,
+        hours,
+        name: profileName(userId),
+      }))
+      .sort((a, b) => b.hours - a.hours)
+  }, [workLogs, hoursMonth, profileName])
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -270,6 +315,69 @@ export function ManagementView({
           />
         </div>
       </form>
+
+      <section className="dash-section">
+        <h2>Çalışma saatleri</h2>
+        <div className="filters">
+          <select
+            value={hoursMonth}
+            onChange={(e) => setHoursMonth(e.target.value)}
+            aria-label="Saat ayı"
+          >
+            {hoursMonths.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <select
+            value={hoursUser}
+            onChange={(e) => setHoursUser(e.target.value)}
+            aria-label="Çalışan"
+          >
+            <option value="all">Tüm çalışanlar</option>
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.displayName || p.id.slice(0, 6)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mgmt__hours-totals">
+          {hoursByUser.length === 0 && (
+            <p className="muted pad">Bu ay bildirim yok.</p>
+          )}
+          {hoursByUser.map((row) => (
+            <article key={row.userId} className="mgmt__hours-total">
+              <strong>{row.name}</strong>
+              <span>{row.hours.toFixed(1)} saat</span>
+            </article>
+          ))}
+        </div>
+
+        <ul className="mgmt__list">
+          {hoursInMonth.map((l) => (
+            <li key={l.id} className="mgmt__row">
+              <div>
+                <p>
+                  <span className="mgmt__type">{profileName(l.userId)}</span>{' '}
+                  {l.workDate}
+                </p>
+                {l.notes && <p className="muted">{l.notes}</p>}
+              </div>
+              <strong>{l.hours} sa</strong>
+              <button
+                type="button"
+                className="chip chip--danger"
+                onClick={() => void onDeleteWorkLog(l.id)}
+              >
+                Sil
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="dash-section mgmt__forecast">
         <h2>10 aylık öngörü</h2>

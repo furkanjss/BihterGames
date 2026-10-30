@@ -7,6 +7,7 @@ import {
   mapProfile,
   mapProject,
   mapTask,
+  mapWorkLog,
 } from './mappers'
 import { supabase } from './supabase'
 import type {
@@ -23,6 +24,7 @@ import type {
   ProjectStatus,
   Task,
   TaskStatus,
+  WorkLog,
 } from './types'
 import { isParkedProjectStatus, OWNER_EMAIL } from './types'
 
@@ -65,6 +67,7 @@ export function useStudio(userId: string | undefined) {
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [links, setLinks] = useState<ImportantLink[]>([])
   const [finance, setFinance] = useState<FinanceEntry[]>([])
+  const [workLogs, setWorkLogs] = useState<WorkLog[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [memberships, setMemberships] = useState<
     { projectId: string; userId: string }[]
@@ -76,7 +79,8 @@ export function useStudio(userId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!supabase || !userId) return
     setError(null)
-    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes, mRes] = await Promise.all([
+    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes, mRes, wRes] =
+      await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: true }),
       supabase
         .from('tasks')
@@ -95,6 +99,10 @@ export function useStudio(userId: string | undefined) {
         .select('*')
         .order('entry_date', { ascending: false }),
       supabase.from('project_members').select('project_id, user_id'),
+      supabase
+        .from('work_logs')
+        .select('*')
+        .order('work_date', { ascending: false }),
     ])
 
     if (pRes.error || tRes.error || dRes.error || prRes.error) {
@@ -147,6 +155,13 @@ export function useStudio(userId: string | undefined) {
             mapFinanceEntry(r as Record<string, unknown>),
           ),
     )
+    setWorkLogs(
+      wRes.error
+        ? []
+        : (wRes.data ?? []).map((r) =>
+            mapWorkLog(r as Record<string, unknown>),
+          ),
+    )
     setActiveProjectId((prev) => {
       if (prev && nextProjects.some((p) => p.id === prev)) return prev
       return nextProjects[0]?.id || ''
@@ -162,6 +177,7 @@ export function useStudio(userId: string | undefined) {
       setIdeas([])
       setLinks([])
       setFinance([])
+      setWorkLogs([])
       setProfiles([])
       setMemberships([])
       setReady(false)
@@ -666,6 +682,54 @@ export function useStudio(userId: string | undefined) {
     setFinance((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
+  const upsertWorkLog = useCallback(
+    async (input: { workDate: string; hours: number; notes?: string }) => {
+      if (!supabase || !userId) return
+      if (!input.workDate || input.hours <= 0 || input.hours > 24) return
+      const { data, error: err } = await supabase
+        .from('work_logs')
+        .upsert(
+          {
+            user_id: userId,
+            work_date: input.workDate,
+            hours: input.hours,
+            notes: input.notes || null,
+          },
+          { onConflict: 'user_id,work_date' },
+        )
+        .select('*')
+        .single()
+      if (err) {
+        setError(err.message)
+        return
+      }
+      const mapped = mapWorkLog(data as Record<string, unknown>)
+      setWorkLogs((prev) => {
+        const without = prev.filter(
+          (l) =>
+            !(l.userId === mapped.userId && l.workDate === mapped.workDate),
+        )
+        return [mapped, ...without].sort((a, b) =>
+          b.workDate.localeCompare(a.workDate),
+        )
+      })
+    },
+    [userId],
+  )
+
+  const deleteWorkLog = useCallback(async (id: string) => {
+    if (!supabase) return
+    const { error: err } = await supabase
+      .from('work_logs')
+      .delete()
+      .eq('id', id)
+    if (err) {
+      setError(err.message)
+      return
+    }
+    setWorkLogs((prev) => prev.filter((l) => l.id !== id))
+  }, [])
+
   const profileName = useCallback(
     (id: string | null | undefined) => {
       if (!id) return 'Atanmamış'
@@ -732,6 +796,7 @@ export function useStudio(userId: string | undefined) {
     ideas,
     links,
     finance,
+    workLogs,
     profiles,
     memberships,
     activeProjectId,
@@ -755,6 +820,8 @@ export function useStudio(userId: string | undefined) {
     deleteLink,
     addFinance,
     deleteFinance,
+    upsertWorkLog,
+    deleteWorkLog,
     profileName,
     projectMemberIds,
     setProjectMember,

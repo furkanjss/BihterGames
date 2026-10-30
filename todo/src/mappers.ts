@@ -7,6 +7,7 @@ import {
   type Profile,
   type Project,
   type Task,
+  type WorkLog,
 } from './types'
 
 export function mapProfile(row: Record<string, unknown>): Profile {
@@ -98,6 +99,17 @@ export function mapFinanceEntry(row: Record<string, unknown>): FinanceEntry {
     category: row.category ? String(row.category) : undefined,
     notes: row.notes ? String(row.notes) : undefined,
     recurring: Boolean(row.recurring),
+    createdAt: String(row.created_at ?? ''),
+  }
+}
+
+export function mapWorkLog(row: Record<string, unknown>): WorkLog {
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    workDate: String(row.work_date ?? ''),
+    hours: Number(row.hours ?? 0),
+    notes: row.notes ? String(row.notes) : undefined,
     createdAt: String(row.created_at ?? ''),
   }
 }

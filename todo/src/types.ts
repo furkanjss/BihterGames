@@ -75,6 +75,15 @@ export interface ImportantLink {
   createdAt: string
 }
 
+export interface WorkLog {
+  id: string
+  userId: string
+  workDate: string
+  hours: number
+  notes?: string
+  createdAt: string
+}
+
 export type FinanceEntryType = 'income' | 'expense' | 'payroll'
 
 export interface FinanceEntry {

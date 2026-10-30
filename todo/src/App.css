@@ -988,6 +988,93 @@
   padding-bottom: 1.5rem;
 }
 
+.mgmt__hours-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.5rem;
+  padding: 0 1.5rem 1rem;
+}
+
+.mgmt__hours-total {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.mgmt__hours-total span {
+  color: var(--lime);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.hours__hours {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.65rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  min-width: 6.5rem;
+}
+
+.hours__hours span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.hours__hours input {
+  border: none;
+  background: transparent;
+  width: 3.5rem;
+  padding-left: 0;
+}
+
+.hours__hours input:focus {
+  outline: none;
+}
+
+.hours__monthbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.5rem 0.85rem;
+}
+
+.hours__monthbar h2 {
+  margin: 0;
+  margin-right: auto;
+}
+
+.hours__total {
+  color: var(--lime);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.hours__list {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0 1.5rem 2rem;
+}
+
+.hours__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
 .mgmt__amount {
   display: flex;
   align-items: center;

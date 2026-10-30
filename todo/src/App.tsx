@@ -6,6 +6,7 @@ import {
   type FormEvent,
 } from 'react'
 import './App.css'
+import { HoursView } from './HoursView'
 import { LoginView } from './LoginView'
 import { ManagementView } from './ManagementView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
@@ -28,7 +29,14 @@ type ProjectListFilter = 'active' | 'on-hold' | 'cancelled' | 'all'
 import { useAuth } from './useAuth'
 import { useStudio } from './useStudio'
 
-type View = 'dashboard' | 'tasks' | 'projects' | 'docs' | 'ideas' | 'management'
+type View =
+  | 'dashboard'
+  | 'tasks'
+  | 'projects'
+  | 'docs'
+  | 'hours'
+  | 'ideas'
+  | 'management'
 
 function App() {
   const auth = useAuth()
@@ -296,6 +304,7 @@ function App() {
               ['tasks', 'Görevler'],
               ['projects', 'Projeler'],
               ['docs', 'Dökümanlar'],
+              ['hours', 'Saatler'],
             ] as [View, string][]
           )
             .concat(
@@ -1075,11 +1084,24 @@ function App() {
           </>
         )}
 
+        {view === 'hours' && auth.user && (
+          <HoursView
+            userId={auth.user.id}
+            logs={studio.workLogs}
+            onUpsert={studio.upsertWorkLog}
+            onDelete={studio.deleteWorkLog}
+          />
+        )}
+
         {view === 'management' && isOwner && (
           <ManagementView
             finance={studio.finance}
+            workLogs={studio.workLogs}
+            profiles={studio.profiles}
             onAdd={studio.addFinance}
             onDelete={studio.deleteFinance}
+            onDeleteWorkLog={studio.deleteWorkLog}
+            profileName={studio.profileName}
           />
         )}
 
