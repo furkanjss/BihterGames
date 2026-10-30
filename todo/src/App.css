@@ -845,6 +845,44 @@
   font-size: 0.95rem;
 }
 
+.project-card__team {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.15rem;
+}
+
+.project-card__team-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.project-card__assigns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.assign-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  font-size: 0.78rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.assign-chip input {
+  accent-color: var(--lime);
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
 .project-card__meta {
   display: flex;
   flex-wrap: wrap;

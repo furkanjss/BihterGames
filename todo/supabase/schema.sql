@@ -75,7 +75,8 @@ create table if not exists public.projects (
 
 alter table public.projects enable row level security;
 
--- Select / insert / update: tüm üyeler. Delete: yalnızca info@bihtergames.com
+-- Project access is tightened in project_members.sql (owner sees all; members see assigned).
+-- Placeholder open policies for fresh installs before that migration:
 create policy "projects_select_authenticated"
   on public.projects for select to authenticated using (true);
 

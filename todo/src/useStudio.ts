@@ -66,6 +66,9 @@ export function useStudio(userId: string | undefined) {
   const [links, setLinks] = useState<ImportantLink[]>([])
   const [finance, setFinance] = useState<FinanceEntry[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
+  const [memberships, setMemberships] = useState<
+    { projectId: string; userId: string }[]
+  >([])
   const [activeProjectId, setActiveProjectId] = useState('')
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -73,7 +76,7 @@ export function useStudio(userId: string | undefined) {
   const refresh = useCallback(async () => {
     if (!supabase || !userId) return
     setError(null)
-    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes] = await Promise.all([
+    const [pRes, tRes, dRes, prRes, iRes, lRes, fRes, mRes] = await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: true }),
       supabase
         .from('tasks')
@@ -91,6 +94,7 @@ export function useStudio(userId: string | undefined) {
         .from('finance_entries')
         .select('*')
         .order('entry_date', { ascending: false }),
+      supabase.from('project_members').select('project_id, user_id'),
     ])
 
     if (pRes.error || tRes.error || dRes.error || prRes.error) {
@@ -116,6 +120,14 @@ export function useStudio(userId: string | undefined) {
     setProfiles(
       (prRes.data ?? []).map((r) => mapProfile(r as Record<string, unknown>)),
     )
+    setMemberships(
+      mRes.error
+        ? []
+        : (mRes.data ?? []).map((r) => ({
+            projectId: String((r as { project_id: string }).project_id),
+            userId: String((r as { user_id: string }).user_id),
+          })),
+    )
     setIdeas(
       iRes.error
         ? []
@@ -135,7 +147,10 @@ export function useStudio(userId: string | undefined) {
             mapFinanceEntry(r as Record<string, unknown>),
           ),
     )
-    setActiveProjectId((prev) => prev || nextProjects[0]?.id || '')
+    setActiveProjectId((prev) => {
+      if (prev && nextProjects.some((p) => p.id === prev)) return prev
+      return nextProjects[0]?.id || ''
+    })
     setReady(true)
   }, [userId])
 
@@ -148,6 +163,7 @@ export function useStudio(userId: string | undefined) {
       setLinks([])
       setFinance([])
       setProfiles([])
+      setMemberships([])
       setReady(false)
       return
     }
@@ -658,6 +674,55 @@ export function useStudio(userId: string | undefined) {
     [profiles],
   )
 
+  const projectMemberIds = useCallback(
+    (projectId: string) =>
+      memberships
+        .filter((m) => m.projectId === projectId)
+        .map((m) => m.userId),
+    [memberships],
+  )
+
+  const setProjectMember = useCallback(
+    async (projectId: string, memberId: string, assigned: boolean) => {
+      if (!supabase) return
+      if (!(await currentUserIsOwner())) {
+        setError('Proje ataması yalnızca stüdyo sahibi.')
+        return
+      }
+      if (assigned) {
+        const { error: err } = await supabase.from('project_members').insert({
+          project_id: projectId,
+          user_id: memberId,
+        })
+        if (err) {
+          setError(err.message)
+          return
+        }
+        setMemberships((prev) =>
+          prev.some((m) => m.projectId === projectId && m.userId === memberId)
+            ? prev
+            : [...prev, { projectId, userId: memberId }],
+        )
+      } else {
+        const { error: err } = await supabase
+          .from('project_members')
+          .delete()
+          .eq('project_id', projectId)
+          .eq('user_id', memberId)
+        if (err) {
+          setError(err.message)
+          return
+        }
+        setMemberships((prev) =>
+          prev.filter(
+            (m) => !(m.projectId === projectId && m.userId === memberId),
+          ),
+        )
+      }
+    },
+    [],
+  )
+
   return {
     ready,
     error,
@@ -668,6 +733,7 @@ export function useStudio(userId: string | undefined) {
     links,
     finance,
     profiles,
+    memberships,
     activeProjectId,
     setActiveProjectId,
     activeProject,
@@ -690,6 +756,8 @@ export function useStudio(userId: string | undefined) {
     addFinance,
     deleteFinance,
     profileName,
+    projectMemberIds,
+    setProjectMember,
     refresh,
   }
 }

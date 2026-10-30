@@ -42,7 +42,6 @@ function App() {
   const [area, setArea] = useState<GameArea>('design')
   const [priority, setPriority] = useState<Priority>('medium')
   const [assigneeId, setAssigneeId] = useState('')
-  const [dueDate, setDueDate] = useState('')
   const [docTitle, setDocTitle] = useState('')
   const [docUrl, setDocUrl] = useState('')
   const [ideaTitle, setIdeaTitle] = useState('')
@@ -153,11 +152,9 @@ function App() {
       area,
       priority,
       assigneeId: assigneeId || null,
-      dueDate: dueDate || undefined,
       projectId,
     })
     setTitle('')
-    setDueDate('')
   }
 
   async function submitDoc(e: FormEvent) {
@@ -324,14 +321,16 @@ function App() {
         <div className="sidebar__block">
           <div className="sidebar__head">
             <span>Oyunlar</span>
-            <button
-              type="button"
-              className="chip"
-              onClick={() => openCreate('game')}
-              title="Yeni proje"
-            >
-              +
-            </button>
+            {isOwner && (
+              <button
+                type="button"
+                className="chip"
+                onClick={() => openCreate('game')}
+                title="Yeni proje"
+              >
+                +
+              </button>
+            )}
           </div>
           <ul className="project-list">
             {gameProjects.map((p) => {
@@ -690,11 +689,6 @@ function App() {
                     </option>
                   ))}
                 </select>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
                 <button type="submit" className="btn btn--lime btn--sm">
                   Ekle
                 </button>
@@ -801,14 +795,21 @@ function App() {
                 <p className="eyebrow">Projects</p>
                 <h1>Projeler</h1>
               </div>
-              <button
-                type="button"
-                className="btn btn--lime"
-                onClick={() => openCreate('game')}
-              >
-                Yeni proje
-              </button>
+              {isOwner && (
+                <button
+                  type="button"
+                  className="btn btn--lime"
+                  onClick={() => openCreate('game')}
+                >
+                  Yeni proje
+                </button>
+              )}
             </header>
+            {!isOwner && (
+              <p className="pad muted">
+                Yalnızca sana atanan projeleri görürsün.
+              </p>
+            )}
 
             <div className="project-filters">
               {(
@@ -860,6 +861,41 @@ function App() {
                       <span>{docs.length} döküman</span>
                       {p.engine && <span>{p.engine}</span>}
                     </div>
+                    <div className="project-card__team">
+                      <span className="project-card__team-label">Ekip</span>
+                      {isOwner ? (
+                        <div className="project-card__assigns">
+                          {studio.profiles.map((prof) => {
+                            const on = studio
+                              .projectMemberIds(p.id)
+                              .includes(prof.id)
+                            return (
+                              <label key={prof.id} className="assign-chip">
+                                <input
+                                  type="checkbox"
+                                  checked={on}
+                                  onChange={(e) =>
+                                    void studio.setProjectMember(
+                                      p.id,
+                                      prof.id,
+                                      e.target.checked,
+                                    )
+                                  }
+                                />
+                                {prof.displayName || prof.id.slice(0, 6)}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <p className="muted">
+                          {studio
+                            .projectMemberIds(p.id)
+                            .map((id) => studio.profileName(id))
+                            .join(' · ') || '—'}
+                        </p>
+                      )}
+                    </div>
                     <div className="project-card__actions">
                       <button
                         type="button"
@@ -882,17 +918,19 @@ function App() {
                       >
                         Dökümanlar
                       </button>
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        onClick={() => {
-                          studio.setActiveProjectId(p.id)
-                          setModalMode('edit')
-                          setModalOpen(true)
-                        }}
-                      >
-                        Düzenle
-                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => {
+                            studio.setActiveProjectId(p.id)
+                            setModalMode('edit')
+                            setModalOpen(true)
+                          }}
+                        >
+                          Düzenle
+                        </button>
+                      )}
                       {isOwner && !parked && (
                         <>
                           <button
@@ -955,7 +993,9 @@ function App() {
               })}
               {filteredProjects.length === 0 && (
                 <p className="muted project-grid__empty">
-                  Bu filtrede proje yok.
+                  {isOwner
+                    ? 'Bu filtrede proje yok.'
+                    : 'Sana atanmış proje yok. Stüdyo sahibinden atama iste.'}
                 </p>
               )}
             </div>
@@ -1125,7 +1165,6 @@ function App() {
             priority: value.priority,
             status: value.status,
             assigneeId: value.assigneeId || null,
-            dueDate: value.dueDate || null,
             notes: value.notes.trim() || null,
             projectId: value.projectId,
           })

@@ -17,7 +17,6 @@ export type TaskFormValue = {
   priority: Priority
   status: TaskStatus
   assigneeId: string
-  dueDate: string
   notes: string
   projectId: string
 }
@@ -53,7 +52,6 @@ export function TaskModal({
       priority: task.priority,
       status: task.status,
       assigneeId: task.assigneeId ?? '',
-      dueDate: task.dueDate ?? '',
       notes: task.notes ?? '',
       projectId: task.projectId,
     })
@@ -180,15 +178,6 @@ export function TaskModal({
               </select>
             </label>
           </div>
-
-          <label>
-            Son tarih
-            <input
-              type="date"
-              value={form.dueDate}
-              onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-            />
-          </label>
 
           <label>
             Detay / not
