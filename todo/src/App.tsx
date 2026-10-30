@@ -853,6 +853,7 @@ function App() {
                     : p.status === 'cancelled'
                       ? 'is-cancelled'
                       : ''
+                const memberIds = studio.projectMemberIds(p.id)
                 return (
                   <article
                     key={p.id}
@@ -864,137 +865,160 @@ function App() {
                         {PROJECT_STATUSES.find((s) => s.id === p.status)?.label}
                       </span>
                     </div>
-                    {p.description && <p>{p.description}</p>}
+                    {p.description && (
+                      <p className="project-card__desc">{p.description}</p>
+                    )}
                     <div className="project-card__meta">
-                      <span>{open} açık görev</span>
-                      <span>{docs.length} döküman</span>
-                      {p.engine && <span>{p.engine}</span>}
+                      <span>
+                        <b>{open}</b> görev
+                      </span>
+                      <span>
+                        <b>{docs.length}</b> döküman
+                      </span>
+                      {p.engine && <span className="project-card__engine">{p.engine}</span>}
                     </div>
+
                     <div className="project-card__team">
-                      <span className="project-card__team-label">Ekip</span>
+                      <div className="project-card__team-head">
+                        <span>Ekip</span>
+                        {isOwner && (
+                          <em>
+                            {memberIds.length}/{studio.profiles.length} üye
+                          </em>
+                        )}
+                      </div>
                       {isOwner ? (
-                        <div className="project-card__assigns">
+                        <div className="project-card__assigns" role="group" aria-label="Ekip ataması">
                           {studio.profiles.map((prof) => {
-                            const on = studio
-                              .projectMemberIds(p.id)
-                              .includes(prof.id)
+                            const on = memberIds.includes(prof.id)
                             return (
-                              <label key={prof.id} className="assign-chip">
-                                <input
-                                  type="checkbox"
-                                  checked={on}
-                                  onChange={(e) =>
-                                    void studio.setProjectMember(
-                                      p.id,
-                                      prof.id,
-                                      e.target.checked,
-                                    )
-                                  }
-                                />
+                              <button
+                                key={prof.id}
+                                type="button"
+                                className={`member-toggle ${on ? 'is-on' : ''}`}
+                                aria-pressed={on}
+                                onClick={() =>
+                                  void studio.setProjectMember(
+                                    p.id,
+                                    prof.id,
+                                    !on,
+                                  )
+                                }
+                              >
+                                <span className="member-toggle__dot" aria-hidden />
                                 {prof.displayName || prof.id.slice(0, 6)}
-                              </label>
+                              </button>
                             )
                           })}
                         </div>
                       ) : (
-                        <p className="muted">
-                          {studio
-                            .projectMemberIds(p.id)
-                            .map((id) => studio.profileName(id))
-                            .join(' · ') || '—'}
-                        </p>
+                        <div className="project-card__assigns">
+                          {memberIds.length === 0 ? (
+                            <span className="muted">—</span>
+                          ) : (
+                            memberIds.map((id) => (
+                              <span key={id} className="member-toggle is-on is-static">
+                                {studio.profileName(id)}
+                              </span>
+                            ))
+                          )}
+                        </div>
                       )}
                     </div>
+
                     <div className="project-card__actions">
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        onClick={() => {
-                          studio.setActiveProjectId(p.id)
-                          setProjectFilter(p.id)
-                          setView('tasks')
-                        }}
-                      >
-                        Görevler
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        onClick={() => {
-                          studio.setActiveProjectId(p.id)
-                          setView('docs')
-                        }}
-                      >
-                        Dökümanlar
-                      </button>
-                      {isOwner && (
+                      <div className="project-card__actions-main">
+                        <button
+                          type="button"
+                          className="btn btn--lime btn--sm"
+                          onClick={() => {
+                            studio.setActiveProjectId(p.id)
+                            setProjectFilter(p.id)
+                            setView('tasks')
+                          }}
+                        >
+                          Görevler
+                        </button>
                         <button
                           type="button"
                           className="btn btn--ghost btn--sm"
                           onClick={() => {
                             studio.setActiveProjectId(p.id)
-                            setModalMode('edit')
-                            setModalOpen(true)
+                            setView('docs')
                           }}
                         >
-                          Düzenle
+                          Dökümanlar
                         </button>
-                      )}
-                      {isOwner && !parked && (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn--ghost btn--sm"
-                            onClick={() =>
-                              void setProjectStatus(p.id, 'on-hold')
-                            }
-                          >
-                            Beklemeye al
-                          </button>
+                        {isOwner && (
                           <button
                             type="button"
                             className="btn btn--ghost btn--sm"
                             onClick={() => {
+                              studio.setActiveProjectId(p.id)
+                              setModalMode('edit')
+                              setModalOpen(true)
+                            }}
+                          >
+                            Düzenle
+                          </button>
+                        )}
+                      </div>
+                      {isOwner && (
+                        <div className="project-card__actions-more">
+                          {!parked ? (
+                            <>
+                              <button
+                                type="button"
+                                className="btn btn--ghost btn--sm"
+                                onClick={() =>
+                                  void setProjectStatus(p.id, 'on-hold')
+                                }
+                              >
+                                Beklemeye al
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--ghost btn--sm"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      `“${p.name}” iptal edilsin mi? (Silinmez; İptal listesine gider.)`,
+                                    )
+                                  ) {
+                                    void setProjectStatus(p.id, 'cancelled')
+                                  }
+                                }}
+                              >
+                                İptal et
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn--lime btn--sm"
+                              onClick={() =>
+                                void setProjectStatus(p.id, 'production')
+                              }
+                            >
+                              Devam ettir
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn btn--danger btn--sm"
+                            onClick={() => {
                               if (
                                 confirm(
-                                  `“${p.name}” iptal edilsin mi? (Silinmez; İptal listesine gider.)`,
+                                  `“${p.name}” ve tüm görevleri silinsin mi?`,
                                 )
                               ) {
-                                void setProjectStatus(p.id, 'cancelled')
+                                void studio.deleteProject(p.id)
                               }
                             }}
                           >
-                            İptal et
+                            Sil
                           </button>
-                        </>
-                      )}
-                      {isOwner && parked && (
-                        <button
-                          type="button"
-                          className="btn btn--lime btn--sm"
-                          onClick={() =>
-                            void setProjectStatus(p.id, 'production')
-                          }
-                        >
-                          Devam ettir
-                        </button>
-                      )}
-                      {isOwner && (
-                        <button
-                          type="button"
-                          className="btn btn--danger btn--sm"
-                          onClick={() => {
-                            if (
-                              confirm(
-                                `“${p.name}” ve tüm görevleri silinsin mi?`,
-                              )
-                            ) {
-                              void studio.deleteProject(p.id)
-                            }
-                          }}
-                        >
-                          Sil
-                        </button>
+                        </div>
                       )}
                     </div>
                   </article>
