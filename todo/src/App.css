@@ -585,11 +585,24 @@
 .composer input,
 .modal input,
 .modal select,
-.modal textarea {
+.modal textarea,
+.hours__monthbar select,
+.mgmt__hours-filters select {
   padding: 0.55rem 0.7rem;
   border-radius: 0.55rem;
   border: 1px solid var(--line);
-  background: var(--panel);
+  background: var(--ink);
+  color: var(--snow);
+  color-scheme: dark;
+}
+
+.filters select option,
+.composer select option,
+.hours__monthbar select option,
+.mgmt__hours-filters select option,
+.modal select option {
+  background: #121212;
+  color: #f5f5f0;
 }
 
 .composer {
@@ -1307,18 +1320,29 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  padding: 0 1.5rem 0.85rem;
+  padding: 0.85rem 1rem;
+  margin: 0 1.5rem 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .hours__monthbar h2 {
   margin: 0;
   margin-right: auto;
+  font-size: 1rem;
+}
+
+.hours__monthbar select {
+  min-width: 7.5rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .hours__total {
   color: var(--lime);
   font-family: var(--font-display);
   font-size: 1.2rem;
+  margin-left: auto;
 }
 
 .hours__list {
