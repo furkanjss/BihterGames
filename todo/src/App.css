@@ -1090,13 +1090,25 @@
   padding-bottom: 1.5rem;
 }
 
+.mgmt__hours {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1.5rem 2rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.5rem;
+  clear: both;
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+
 .mgmt__hours-head {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 1.5rem 1rem;
 }
 
 .mgmt__hours-head h2 {
@@ -1113,7 +1125,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
-  padding: 0 1.5rem 1rem;
 }
 
 .mgmt__hours-summary article {
@@ -1124,6 +1135,7 @@
     var(--panel);
   display: grid;
   gap: 0.3rem;
+  min-width: 0;
 }
 
 .mgmt__hours-summary span {
@@ -1138,62 +1150,79 @@
   font-size: 1.45rem;
 }
 
-.mgmt__hours-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: 0.75rem;
-  padding: 0 1.5rem 1.25rem;
+.mgmt__hours-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
 }
 
-.mgmt__staff-card {
+.mgmt__staff-row {
   display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
+  grid-template-columns: minmax(7rem, 1.1fr) minmax(4.5rem, 0.55fr) minmax(5.5rem, 0.7fr) minmax(11rem, 1.4fr);
+  gap: 0.75rem 1rem;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 0.9rem 1rem;
   border-radius: 0.9rem;
   border: 1px solid var(--line);
   background: var(--panel);
 }
 
-.mgmt__staff-card header {
+.mgmt__staff-row__who {
   display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-wrap: wrap;
   align-items: baseline;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
-.mgmt__staff-stats {
+.mgmt__staff-row__who strong {
+  font-size: 1rem;
+}
+
+.mgmt__owner-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 255, 58, 0.4);
+  color: var(--lime);
+}
+
+.mgmt__staff-row__stat {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
-.mgmt__staff-stats div {
-  display: grid;
-  gap: 0.2rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.55rem;
-  background: var(--ink);
-  border: 1px solid var(--line);
-}
-
-.mgmt__staff-stats span {
+.mgmt__staff-row__stat span {
   font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.mgmt__staff-stats b {
+.mgmt__staff-row__stat b {
   font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mgmt__staff-row__note {
+  grid-column: 3 / -1;
+  font-size: 0.88rem;
 }
 
 .mgmt__rate {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.3rem;
+  min-width: 0;
 }
 
 .mgmt__rate > span {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1202,12 +1231,14 @@
 .mgmt__rate-row {
   display: flex;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .mgmt__rate-row input {
   flex: 1;
   min-width: 0;
-  padding: 0.55rem 0.7rem;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
   border-radius: 0.55rem;
   border: 1px solid var(--line);
   background: var(--ink);
@@ -1222,16 +1253,42 @@
 }
 
 .mgmt__hours-sub {
-  padding: 0 1.5rem 0.65rem;
+  margin: 0.35rem 0 0;
   font-size: 0.95rem;
   color: var(--muted);
   font-weight: 600;
+}
+
+.mgmt__hours-list {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
 }
 
 .mgmt__hours-cell {
   display: grid;
   gap: 0.15rem;
   text-align: right;
+}
+
+@media (max-width: 820px) {
+  .mgmt__staff-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mgmt__staff-row__who {
+    grid-column: 1 / -1;
+  }
+
+  .mgmt__staff-row__note {
+    grid-column: 1 / -1;
+  }
+
+  .mgmt__rate {
+    grid-column: 1 / -1;
+  }
 }
 
 .hours__form {

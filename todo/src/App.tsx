@@ -1123,6 +1123,7 @@ function App() {
             workLogs={studio.workLogs}
             staffRates={studio.staffRates}
             profiles={studio.profiles}
+            ownerUserId={auth.user?.id}
             onAdd={studio.addFinance}
             onDelete={studio.deleteFinance}
             onDeleteWorkLog={studio.deleteWorkLog}

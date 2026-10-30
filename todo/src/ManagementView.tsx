@@ -42,6 +42,7 @@ export function ManagementView({
   workLogs,
   staffRates,
   profiles,
+  ownerUserId,
   onAdd,
   onDelete,
   onDeleteWorkLog,
@@ -52,6 +53,8 @@ export function ManagementView({
   workLogs: WorkLog[]
   staffRates: StaffRate[]
   profiles: Profile[]
+  /** Studio owner (info@) — no hourly wage UI */
+  ownerUserId?: string | null
   onAdd: (input: {
     entryType: FinanceEntryType
     label: string
@@ -181,8 +184,13 @@ export function ManagementView({
     [workLogs, hoursMonth, hoursUser],
   )
 
-  const rateFor = (userId: string) =>
-    staffRates.find((r) => r.userId === userId)?.hourlyRate ?? 0
+  const rateFor = (userId: string) => {
+    if (ownerUserId && userId === ownerUserId) return 0
+    return staffRates.find((r) => r.userId === userId)?.hourlyRate ?? 0
+  }
+
+  const isOwnerProfile = (userId: string) =>
+    Boolean(ownerUserId && userId === ownerUserId)
 
   const hoursByUser = useMemo(() => {
     const map = new Map<string, number>()
@@ -204,13 +212,17 @@ export function ManagementView({
           rate,
           pay: hours * rate,
           name: profileName(userId),
+          isOwner: isOwnerProfile(userId),
         }
       })
       .filter((row) =>
         hoursUser === 'all' ? true : row.userId === hoursUser,
       )
-      .sort((a, b) => b.pay - a.pay || b.hours - a.hours)
-  }, [workLogs, hoursMonth, hoursUser, profiles, staffRates, profileName])
+      .sort((a, b) => {
+        if (a.isOwner !== b.isOwner) return a.isOwner ? 1 : -1
+        return b.pay - a.pay || b.hours - a.hours
+      })
+  }, [workLogs, hoursMonth, hoursUser, profiles, staffRates, profileName, ownerUserId])
 
   const monthPayTotal = useMemo(
     () => hoursByUser.reduce((s, r) => s + r.pay, 0),
@@ -229,6 +241,7 @@ export function ManagementView({
   }
 
   async function saveRate(userId: string) {
+    if (isOwnerProfile(userId)) return
     const raw = rateDraftValue(userId)
     const n = parseMoney(raw || '0')
     if (Number.isNaN(n) || n < 0) return
@@ -372,13 +385,13 @@ export function ManagementView({
         </div>
       </form>
 
-      <section className="dash-section mgmt__hours">
+      <section className="mgmt__hours">
         <div className="mgmt__hours-head">
           <div>
             <p className="eyebrow">Payroll</p>
             <h2>Çalışma saatleri</h2>
             <p className="muted">
-              Saatlik ücret gir; ay sonu tutar = saat × ücret.
+              Çalışanlara saatlik ücret gir; ay sonu tutar = saat × ücret.
             </p>
           </div>
           <div className="mgmt__hours-filters">
@@ -419,62 +432,72 @@ export function ManagementView({
           </article>
         </div>
 
-        <div className="mgmt__hours-grid">
+        <div className="mgmt__hours-stack">
           {hoursByUser.length === 0 && (
             <p className="muted">Henüz çalışan veya bildirim yok.</p>
           )}
           {hoursByUser.map((row) => (
-            <article key={row.userId} className="mgmt__staff-card">
-              <header>
+            <article key={row.userId} className="mgmt__staff-row">
+              <div className="mgmt__staff-row__who">
                 <strong>{row.name}</strong>
-                <span className="muted">{hoursMonth}</span>
-              </header>
-              <div className="mgmt__staff-stats">
-                <div>
-                  <span>Saat</span>
-                  <b>{row.hours.toFixed(1)}</b>
-                </div>
-                <div>
-                  <span>Aylık tutar</span>
-                  <b className="pos">{money(row.pay)}</b>
-                </div>
+                {row.isOwner ? (
+                  <span className="mgmt__owner-tag">Sahip</span>
+                ) : (
+                  <span className="muted">{hoursMonth}</span>
+                )}
               </div>
-              <label className="mgmt__rate">
-                <span>Saatlik ücret (₺)</span>
-                <div className="mgmt__rate-row">
-                  <input
-                    value={rateDraftValue(row.userId)}
-                    onChange={(e) =>
-                      setRateDrafts((prev) => ({
-                        ...prev,
-                        [row.userId]: formatMoneyInput(e.target.value),
-                      }))
-                    }
-                    onBlur={() => void saveRate(row.userId)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        void saveRate(row.userId)
-                      }
-                    }}
-                    inputMode="numeric"
-                    placeholder="örn. 500"
-                  />
-                  <button
-                    type="button"
-                    className="btn btn--ghost btn--sm"
-                    onClick={() => void saveRate(row.userId)}
-                  >
-                    Kaydet
-                  </button>
+              <div className="mgmt__staff-row__stat">
+                <span>Saat</span>
+                <b>{row.hours.toFixed(1)}</b>
+              </div>
+              {row.isOwner ? (
+                <div className="mgmt__staff-row__note muted">
+                  Saatlik ücret yok
                 </div>
-              </label>
+              ) : (
+                <>
+                  <div className="mgmt__staff-row__stat">
+                    <span>Aylık tutar</span>
+                    <b className="pos">{money(row.pay)}</b>
+                  </div>
+                  <label className="mgmt__rate">
+                    <span>Saatlik ücret (₺)</span>
+                    <div className="mgmt__rate-row">
+                      <input
+                        value={rateDraftValue(row.userId)}
+                        onChange={(e) =>
+                          setRateDrafts((prev) => ({
+                            ...prev,
+                            [row.userId]: formatMoneyInput(e.target.value),
+                          }))
+                        }
+                        onBlur={() => void saveRate(row.userId)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            void saveRate(row.userId)
+                          }
+                        }}
+                        inputMode="numeric"
+                        placeholder="örn. 500"
+                      />
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => void saveRate(row.userId)}
+                      >
+                        Kaydet
+                      </button>
+                    </div>
+                  </label>
+                </>
+              )}
             </article>
           ))}
         </div>
 
         <h3 className="mgmt__hours-sub">Günlük kayıtlar</h3>
-        <ul className="mgmt__list">
+        <ul className="mgmt__hours-list">
           {hoursInMonth.length === 0 && (
             <li className="muted">Bu ay bildirim yok.</li>
           )}
