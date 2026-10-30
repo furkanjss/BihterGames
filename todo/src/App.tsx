@@ -1042,12 +1042,18 @@ function App() {
                 <p className="eyebrow">Docs</p>
                 <h1>Dökümanlar</h1>
               </div>
+              {studio.activeProject && (
+                <p className="docs__count">
+                  <b>{studio.projectDocuments.length}</b> link
+                </p>
+              )}
             </header>
 
             <div className="filters">
               <select
                 value={studio.activeProjectId}
                 onChange={(e) => studio.setActiveProjectId(e.target.value)}
+                aria-label="Proje"
               >
                 {studio.projects.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -1060,8 +1066,9 @@ function App() {
             {!studio.activeProject ? (
               <p className="muted pad">Önce bir proje oluştur.</p>
             ) : (
-              <>
-                <form className="composer" onSubmit={submitDoc}>
+              <div className="docs">
+                <form className="docs__composer" onSubmit={submitDoc}>
+                  <p className="docs__composer-label">Yeni döküman</p>
                   <input
                     className="composer__title"
                     value={docTitle}
@@ -1084,26 +1091,58 @@ function App() {
                   </div>
                 </form>
 
-                <ul className="doc-list">
-                  {studio.projectDocuments.length === 0 && (
-                    <li className="muted">Bu projede döküman yok.</li>
+                <section className="docs__library">
+                  <div className="docs__library-head">
+                    <h2>{studio.activeProject.name}</h2>
+                    <span className="muted">Proje dökümanları</span>
+                  </div>
+
+                  {studio.projectDocuments.length === 0 ? (
+                    <p className="docs__empty muted">
+                      Bu projede henüz döküman yok. Yukarıdan Drive / Notion /
+                      GDD linki ekle.
+                    </p>
+                  ) : (
+                    <ul className="doc-grid">
+                      {studio.projectDocuments.map((d) => {
+                        let host = ''
+                        try {
+                          host = new URL(d.url).hostname.replace(/^www\./, '')
+                        } catch {
+                          host = d.url
+                        }
+                        return (
+                          <li key={d.id} className="doc-card">
+                            <a
+                              className="doc-card__main"
+                              href={d.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <span className="doc-card__icon" aria-hidden>
+                                ↗
+                              </span>
+                              <span className="doc-card__text">
+                                <strong>{d.title}</strong>
+                                <em>{host}</em>
+                              </span>
+                              <span className="doc-card__open">Aç</span>
+                            </a>
+                            <button
+                              type="button"
+                              className="doc-card__del"
+                              onClick={() => void studio.deleteDocument(d.id)}
+                              aria-label={`${d.title} sil`}
+                            >
+                              Sil
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
                   )}
-                  {studio.projectDocuments.map((d) => (
-                    <li key={d.id} className="doc-row">
-                      <a href={d.url} target="_blank" rel="noopener noreferrer">
-                        {d.title}
-                      </a>
-                      <button
-                        type="button"
-                        className="chip chip--danger"
-                        onClick={() => void studio.deleteDocument(d.id)}
-                      >
-                        Sil
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
+                </section>
+              </div>
             )}
           </>
         )}
