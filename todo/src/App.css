@@ -1011,31 +1011,174 @@
   font-weight: 700;
 }
 
-.hours__hours {
+.hours__form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0 1.5rem 1.5rem;
+}
+
+.hours__date-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(165deg, rgba(217, 255, 58, 0.06), transparent 55%),
+    var(--panel);
+}
+
+.hours__date-head {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0 0.65rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hours__date-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lime);
+  font-weight: 600;
+}
+
+.hours__quick {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.hours__pill {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease),
+    background 0.2s var(--ease);
+}
+
+.hours__pill:hover {
+  color: var(--snow);
+  border-color: rgba(217, 255, 58, 0.35);
+}
+
+.hours__pill.is-on {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--ink);
+}
+
+.hours__date-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.hours__nav {
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 0.65rem;
   border: 1px solid var(--line);
   background: var(--ink);
-  min-width: 6.5rem;
+  color: var(--snow);
+  font-size: 1.35rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
 }
 
-.hours__hours span {
+.hours__nav:hover {
+  border-color: rgba(217, 255, 58, 0.45);
+  color: var(--lime);
+}
+
+.hours__date-main {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.hours__date-main strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+  font-weight: 700;
+  text-transform: capitalize;
+  line-height: 1.2;
+}
+
+.hours__date-main input[type='date'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.hours__date-main:focus-within {
+  border-color: rgba(217, 255, 58, 0.55);
+}
+
+.hours__hint {
+  font-size: 0.82rem;
   color: var(--muted);
-  font-size: 0.78rem;
 }
 
-.hours__hours input {
-  border: none;
-  background: transparent;
-  width: 3.5rem;
-  padding-left: 0;
+.hours__hint strong {
+  color: var(--lime);
 }
 
-.hours__hours input:focus {
+.hours__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.hours__field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 5.5rem;
+}
+
+.hours__field--grow {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.hours__field span {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hours__field input {
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--snow);
+  font: inherit;
+}
+
+.hours__field input:focus {
   outline: none;
+  border-color: rgba(217, 255, 58, 0.55);
 }
 
 .hours__monthbar {

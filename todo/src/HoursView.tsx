@@ -2,9 +2,35 @@ import { useMemo, useState, type FormEvent } from 'react'
 import type { WorkLog } from './types'
 
 function parseHours(raw: string): number {
-  const n = Number(raw.trim().replace(',', '.'))
-  return n
+  return Number(raw.trim().replace(',', '.'))
 }
+
+function toISODate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function shiftDate(iso: string, days: number): string {
+  const d = new Date(`${iso}T12:00:00`)
+  d.setDate(d.getDate() + days)
+  return toISODate(d)
+}
+
+const dateFmt = new Intl.DateTimeFormat('tr-TR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+})
+
+const listFmt = new Intl.DateTimeFormat('tr-TR', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  weekday: 'short',
+})
 
 export function HoursView({
   userId,
@@ -21,14 +47,13 @@ export function HoursView({
   }) => Promise<void> | void
   onDelete: (id: string) => Promise<void> | void
 }) {
-  const [workDate, setWorkDate] = useState(
-    () => new Date().toISOString().slice(0, 10),
-  )
+  const today = useMemo(() => toISODate(new Date()), [])
+  const yesterday = useMemo(() => shiftDate(today, -1), [today])
+
+  const [workDate, setWorkDate] = useState(today)
   const [hours, setHours] = useState('8')
   const [notes, setNotes] = useState('')
-  const [month, setMonth] = useState(() =>
-    new Date().toISOString().slice(0, 7),
-  )
+  const [month, setMonth] = useState(() => today.slice(0, 7))
 
   const mine = useMemo(
     () =>
@@ -51,9 +76,14 @@ export function HoursView({
 
   const months = useMemo(() => {
     const set = new Set(mine.map((l) => l.workDate.slice(0, 7)))
-    set.add(new Date().toISOString().slice(0, 7))
+    set.add(today.slice(0, 7))
     return [...set].sort().reverse()
-  }, [mine])
+  }, [mine, today])
+
+  const existingForDay = useMemo(
+    () => mine.find((l) => l.workDate === workDate),
+    [mine, workDate],
+  )
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -81,16 +111,68 @@ export function HoursView({
         kayıt güncellenir.
       </p>
 
-      <form className="composer" onSubmit={(e) => void submit(e)}>
-        <div className="composer__row">
-          <input
-            type="date"
-            value={workDate}
-            onChange={(e) => setWorkDate(e.target.value)}
-            required
-            aria-label="Gün"
-          />
-          <label className="hours__hours">
+      <form className="hours__form" onSubmit={(e) => void submit(e)}>
+        <div className="hours__date-card">
+          <div className="hours__date-head">
+            <span className="hours__date-label">Gün</span>
+            <div className="hours__quick">
+              <button
+                type="button"
+                className={`hours__pill ${workDate === today ? 'is-on' : ''}`}
+                onClick={() => setWorkDate(today)}
+              >
+                Bugün
+              </button>
+              <button
+                type="button"
+                className={`hours__pill ${workDate === yesterday ? 'is-on' : ''}`}
+                onClick={() => setWorkDate(yesterday)}
+              >
+                Dün
+              </button>
+            </div>
+          </div>
+
+          <div className="hours__date-row">
+            <button
+              type="button"
+              className="hours__nav"
+              aria-label="Önceki gün"
+              onClick={() => setWorkDate(shiftDate(workDate, -1))}
+            >
+              ‹
+            </button>
+            <label className="hours__date-main">
+              <strong>
+                {dateFmt.format(new Date(`${workDate}T12:00:00`))}
+              </strong>
+              <input
+                type="date"
+                value={workDate}
+                onChange={(e) => setWorkDate(e.target.value)}
+                required
+              />
+            </label>
+            <button
+              type="button"
+              className="hours__nav"
+              aria-label="Sonraki gün"
+              onClick={() => setWorkDate(shiftDate(workDate, 1))}
+            >
+              ›
+            </button>
+          </div>
+
+          {existingForDay && (
+            <p className="hours__hint">
+              Bu gün zaten <strong>{existingForDay.hours} sa</strong> kayıtlı —
+              kaydetmek üzerine yazar.
+            </p>
+          )}
+        </div>
+
+        <div className="hours__fields">
+          <label className="hours__field">
             <span>Saat</span>
             <input
               value={hours}
@@ -100,14 +182,16 @@ export function HoursView({
               required
             />
           </label>
-          <input
-            className="composer__grow"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Not (opsiyonel)"
-          />
-          <button type="submit" className="btn btn--lime btn--sm">
-            Bildir
+          <label className="hours__field hours__field--grow">
+            <span>Not</span>
+            <input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Opsiyonel"
+            />
+          </label>
+          <button type="submit" className="btn btn--lime">
+            {existingForDay ? 'Güncelle' : 'Bildir'}
           </button>
         </div>
       </form>
@@ -136,7 +220,9 @@ export function HoursView({
           {monthLogs.map((l) => (
             <li key={l.id} className="hours__row">
               <div>
-                <p>{l.workDate}</p>
+                <p>
+                  {listFmt.format(new Date(`${l.workDate}T12:00:00`))}
+                </p>
                 {l.notes && <p className="muted">{l.notes}</p>}
               </div>
               <strong>{l.hours} sa</strong>
