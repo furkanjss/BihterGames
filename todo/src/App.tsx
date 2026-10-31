@@ -57,8 +57,6 @@ function App() {
   const [linkTitle, setLinkTitle] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [linkBody, setLinkBody] = useState('')
-  const [nameDraft, setNameDraft] = useState('')
-  const [editingName, setEditingName] = useState(false)
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -250,14 +248,6 @@ function App() {
     await studio.moveTask(id, status, toIndex, visibleIds)
   }
 
-  async function saveName() {
-    const ok = await auth.updateDisplayName(nameDraft)
-    if (ok) {
-      setEditingName(false)
-      await studio.refresh()
-    }
-  }
-
   const isOwner =
     (auth.user?.email || '').toLowerCase() === OWNER_EMAIL.toLowerCase()
 
@@ -394,44 +384,9 @@ function App() {
         )}
 
         <div className="sidebar__foot">
-          {editingName ? (
-            <div className="name-edit">
-              <input
-                value={nameDraft}
-                onChange={(e) => setNameDraft(e.target.value)}
-                placeholder="Görünen ad"
-                aria-label="Görünen ad"
-              />
-              <div className="name-edit__row">
-                <button type="button" className="btn btn--lime btn--sm" onClick={() => void saveName()}>
-                  Kaydet
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  onClick={() => setEditingName(false)}
-                >
-                  İptal
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <p className="sidebar__user">
-                {auth.profile?.displayName || auth.user?.email}
-              </p>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                onClick={() => {
-                  setNameDraft(auth.profile?.displayName || '')
-                  setEditingName(true)
-                }}
-              >
-                İsmi değiştir
-              </button>
-            </>
-          )}
+          <p className="sidebar__user">
+            {auth.profile?.displayName || auth.user?.email}
+          </p>
           <button type="button" className="btn btn--ghost btn--sm" onClick={auth.signOut}>
             Çıkış
           </button>
