@@ -22,6 +22,6 @@ function publicDirIndex(dirs: string[]): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), publicDirIndex(['frostline-gdd', 'publisherpitch'])],
+  plugins: [react(), publicDirIndex(['frostline-gdd'])],
 })
 
