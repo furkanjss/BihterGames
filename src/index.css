@@ -9,6 +9,7 @@
   --font-display: 'Baloo 2', system-ui, sans-serif;
   --font-body: 'Outfit', system-ui, sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.45, 0.46, 1);
   color: var(--snow);
   background: var(--ink);
   font-family: var(--font-body);

@@ -16,6 +16,30 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const nodes = document.querySelectorAll<HTMLElement>('[data-reveal]')
+    if (!nodes.length) return
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      nodes.forEach((el) => el.classList.add('is-in'))
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          entry.target.classList.add('is-in')
+          observer.unobserve(entry.target)
+        }
+      },
+      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' },
+    )
+
+    nodes.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
@@ -98,7 +122,7 @@ function App() {
         </section>
 
         <section className="games" id="games">
-          <div className="section-head">
+          <div className="section-head" data-reveal>
             <p className="eyebrow">Games</p>
             <h2>Coming soon</h2>
             <p className="lede">
@@ -107,14 +131,19 @@ function App() {
             </p>
           </div>
 
-          <div className="games__soon" aria-live="polite">
+          <div
+            className="games__soon"
+            aria-live="polite"
+            data-reveal
+            data-reveal-delay="1"
+          >
             <span className="games__pulse" aria-hidden="true" />
             <p>To be announced</p>
           </div>
         </section>
 
         <section className="studio" id="studio">
-          <div className="studio__visual">
+          <div className="studio__visual" data-reveal data-reveal-from="left">
             <img
               src="/logos/logo-black.png"
               alt="bihter GAMES logo"
@@ -122,7 +151,12 @@ function App() {
               height={380}
             />
           </div>
-          <div className="studio__copy">
+          <div
+            className="studio__copy"
+            data-reveal
+            data-reveal-from="right"
+            data-reveal-delay="1"
+          >
             <p className="eyebrow eyebrow--dark">Studio</p>
             <h2>The Play Goes ON.</h2>
             <p>
@@ -136,7 +170,7 @@ function App() {
         </section>
 
         <section className="contact" id="contact">
-          <div className="contact__panel">
+          <div className="contact__panel" data-reveal>
             <img
               className="contact__logo"
               src="/logos/logo-white.png"
