@@ -126,9 +126,9 @@ function App() {
             <p className="eyebrow eyebrow--dark">Studio</p>
             <h2>The Play Goes ON.</h2>
             <p>
-              Bihter Games is an independent PC game studio founded by Unity
-              developer Furkan Çağlar, who has contributed to successful titles
-              including Liar&apos;s Bar and Bombanana!. Driven by curiosity and
+              Bihter Games is an independent PC game studio founded by Furkan
+              Çağlar, who has contributed to successful titles including
+              Liar&apos;s Bar and Bombanana!. Driven by curiosity and
               creativity, the studio focuses on crafting unique and engaging
               gaming experiences.
             </p>
