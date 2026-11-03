@@ -374,6 +374,29 @@
   background: rgba(217, 255, 58, 0.08);
 }
 
+.pill--mine {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-color: rgba(217, 255, 58, 0.35);
+  color: var(--snow);
+  background: rgba(217, 255, 58, 0.06);
+}
+
+.pill--mine:hover {
+  border-color: var(--lime);
+  color: var(--lime);
+  background: rgba(217, 255, 58, 0.12);
+}
+
+.pill--mine.is-active {
+  border-color: var(--lime);
+  color: var(--ink);
+  background: var(--lime);
+  box-shadow: 0 0 0 1px rgba(217, 255, 58, 0.25);
+}
+
 .tag {
   display: inline-flex;
   padding: 0.2rem 0.5rem;

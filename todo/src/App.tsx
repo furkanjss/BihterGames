@@ -610,10 +610,10 @@ function App() {
                 <p className="task-composer__label">Görev ekle</p>
                 <button
                   type="button"
-                  className={`pill ${mineOnly ? 'is-active' : ''}`}
+                  className={`pill pill--mine ${mineOnly ? 'is-active' : ''}`}
                   onClick={() => setMineOnly((v) => !v)}
                 >
-                  Atanan
+                  Bana Atanmış
                 </button>
               </div>
               <input
