@@ -581,15 +581,6 @@ function App() {
                 <p className="eyebrow">Board</p>
                 <h1>Görevler</h1>
               </div>
-              <div className="topbar__actions">
-                <button
-                  type="button"
-                  className={`pill ${mineOnly ? 'is-active' : ''}`}
-                  onClick={() => setMineOnly((v) => !v)}
-                >
-                  Bana atanan
-                </button>
-              </div>
             </header>
 
             <div className="filters">
@@ -614,47 +605,67 @@ function App() {
               </span>
             </div>
 
-            <form className="composer composer--compact" onSubmit={submitTask}>
+            <form className="task-composer" onSubmit={submitTask}>
+              <div className="task-composer__head">
+                <p className="task-composer__label">Görev ekle</p>
+                <button
+                  type="button"
+                  className={`pill ${mineOnly ? 'is-active' : ''}`}
+                  onClick={() => setMineOnly((v) => !v)}
+                >
+                  Atanan
+                </button>
+              </div>
               <input
                 className="composer__title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Tek görev…"
+                placeholder="Görev başlığı…"
+                required
               />
-              <div className="composer__row">
-                <select
-                  value={area}
-                  onChange={(e) => setArea(e.target.value as GameArea)}
-                >
-                  {GAME_AREAS.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as Priority)}
-                >
-                  {PRIORITIES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={assigneeId}
-                  onChange={(e) => setAssigneeId(e.target.value)}
-                >
-                  <option value="">Atanmamış</option>
-                  {studio.profiles.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.displayName || p.id.slice(0, 6)}
-                    </option>
-                  ))}
-                </select>
-                <button type="submit" className="btn btn--lime btn--sm">
-                  Ekle
+              <div className="composer__row task-composer__meta">
+                <label className="task-composer__field">
+                  <span>Alan</span>
+                  <select
+                    value={area}
+                    onChange={(e) => setArea(e.target.value as GameArea)}
+                  >
+                    {GAME_AREAS.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="task-composer__field">
+                  <span>Öncelik</span>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as Priority)}
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="task-composer__field">
+                  <span>Kişi</span>
+                  <select
+                    value={assigneeId}
+                    onChange={(e) => setAssigneeId(e.target.value)}
+                  >
+                    <option value="">Atanmamış</option>
+                    {studio.profiles.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.displayName || p.id.slice(0, 6)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button type="submit" className="btn btn--lime">
+                  Görev ekle
                 </button>
               </div>
             </form>
