@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
   formatTaskDate,
   fromDatetimeLocalValue,
@@ -9,7 +9,6 @@ import {
   GAME_AREAS,
   PRIORITIES,
   TASK_STATUSES,
-  type Document,
   type GameArea,
   type Priority,
   type Profile,
@@ -29,7 +28,6 @@ export type TaskFormValue = {
   projectId: string
   dueDate: string
   links: TaskLink[]
-  documentIds: string[]
   startedAt: string | null
   completedAt: string | null
 }
@@ -46,7 +44,6 @@ export function TaskModal({
   task,
   projects,
   profiles,
-  documents,
   onClose,
   onSave,
   onDelete,
@@ -55,7 +52,6 @@ export function TaskModal({
   task: Task | null
   projects: Project[]
   profiles: Profile[]
-  documents: Document[]
   onClose: () => void
   onSave: (id: string, value: TaskFormValue) => void | Promise<void>
   onDelete: (id: string) => void | Promise<void>
@@ -84,7 +80,6 @@ export function TaskModal({
       projectId: task.projectId,
       dueDate: task.dueDate ?? '',
       links: task.links ?? [],
-      documentIds: task.documentIds ?? [],
       startedAt: task.startedAt ?? null,
       completedAt: task.completedAt ?? null,
     })
@@ -94,14 +89,6 @@ export function TaskModal({
     setLinkTitle('')
     setLinkUrl('')
   }, [open, task])
-
-  const projectDocs = useMemo(() => {
-    if (!form) return []
-    return documents
-      .filter((d) => d.projectId === form.projectId)
-      .slice()
-      .sort((a, b) => a.title.localeCompare(b.title, 'tr'))
-  }, [documents, form])
 
   if (!open || !task || !form) return null
 
@@ -137,17 +124,6 @@ export function TaskModal({
     setForm({
       ...form,
       links: form.links.filter((_, i) => i !== index),
-    })
-  }
-
-  function toggleDoc(id: string) {
-    if (!form) return
-    const has = form.documentIds.includes(id)
-    setForm({
-      ...form,
-      documentIds: has
-        ? form.documentIds.filter((x) => x !== id)
-        : [...form.documentIds, id],
     })
   }
 
@@ -218,13 +194,7 @@ export function TaskModal({
             Proje
             <select
               value={form.projectId}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  projectId: e.target.value,
-                  documentIds: [],
-                })
-              }
+              onChange={(e) => setForm({ ...form, projectId: e.target.value })}
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -348,6 +318,9 @@ export function TaskModal({
               <h3>Linkler</h3>
               <span>{form.links.length}</span>
             </header>
+            <p className="task-detail__empty">
+              Drive, Figma, Notion vb. link ekleyebilirsin.
+            </p>
             {form.links.length > 0 && (
               <ul className="task-detail__list">
                 {form.links.map((link, i) => (
@@ -393,47 +366,6 @@ export function TaskModal({
                 Ekle
               </button>
             </div>
-          </section>
-
-          <section className="task-detail">
-            <header className="task-detail__head">
-              <h3>Dokümanlar</h3>
-              <span>{form.documentIds.length}</span>
-            </header>
-            {projectDocs.length === 0 ? (
-              <p className="task-detail__empty">
-                Bu projede henüz doküman yok. Docs sekmesinden ekleyebilirsin.
-              </p>
-            ) : (
-              <ul className="task-detail__docs">
-                {projectDocs.map((doc) => {
-                  const on = form.documentIds.includes(doc.id)
-                  return (
-                    <li key={doc.id}>
-                      <label className={`task-detail__doc ${on ? 'is-on' : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          onChange={() => toggleDoc(doc.id)}
-                        />
-                        <span className="task-detail__doc-text">
-                          <strong>{doc.title}</strong>
-                          <em>{doc.url}</em>
-                        </span>
-                      </label>
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="task-detail__open"
-                      >
-                        Aç
-                      </a>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
           </section>
 
           <div className="modal__actions">

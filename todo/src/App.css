@@ -2366,8 +2366,7 @@
   line-height: 1.4;
 }
 
-.task-detail__list,
-.task-detail__docs {
+.task-detail__list {
   list-style: none;
   display: grid;
   gap: 0.45rem;
@@ -2429,57 +2428,6 @@
 
 .task-detail__add input {
   min-width: 0;
-}
-
-.task-detail__docs > li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.45rem;
-  align-items: center;
-}
-
-.task-detail__doc {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.55rem;
-  align-items: start;
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.65rem;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  cursor: pointer;
-  text-transform: none;
-  letter-spacing: 0;
-  color: inherit;
-  font-size: inherit;
-}
-
-.task-detail__doc.is-on {
-  border-color: rgba(35, 131, 226, 0.45);
-  background: #eef5ff;
-}
-
-.task-detail__doc input {
-  margin-top: 0.2rem;
-  accent-color: #2383e2;
-}
-
-.task-detail__doc-text {
-  display: grid;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.task-detail__open {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #2383e2;
-  text-decoration: none;
-  padding: 0.35rem 0.55rem;
-}
-
-.task-detail__open:hover {
-  text-decoration: underline;
 }
 
 .kcard__refs {
