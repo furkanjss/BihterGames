@@ -67,6 +67,11 @@ img {
 }
 
 :focus-visible {
-  outline: 2px solid var(--lime);
+  outline: 2px solid #2383e2;
   outline-offset: 2px;
+}
+
+.sidebar :focus-visible,
+.login :focus-visible {
+  outline-color: var(--lime);
 }
