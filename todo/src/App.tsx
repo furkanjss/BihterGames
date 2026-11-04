@@ -717,7 +717,6 @@ function App() {
                         GAME_AREAS.find((a) => a.id === task.area)?.label ??
                         task.area
                       const who = studio.profileName(task.assigneeId)
-                      const initial = (who || '?').trim().charAt(0).toUpperCase()
                       const showBefore =
                         dragOverCol === col.id &&
                         dropIndex === index &&
@@ -784,12 +783,8 @@ function App() {
                               </span>
                             )}
                             {task.assigneeId && (
-                              <span
-                                className="kcard__avatar"
-                                title={who}
-                                aria-label={who}
-                              >
-                                {initial}
+                              <span className="kcard__who-name" title={who}>
+                                {who}
                               </span>
                             )}
                           </div>
