@@ -1,0 +1,14 @@
+---
+description: After meaningful code changes, commit and push without waiting to be asked
+alwaysApply: true
+---
+
+# Auto commit & push
+
+When you finish a meaningful set of code changes for this project:
+
+1. Create a git commit (follow the repo's commit style).
+2. Push to the tracked remote branch immediately.
+3. Do **not** wait for the user to say "pushla", "commit", or similar.
+
+Exceptions: skip only if the user explicitly says not to commit/push, or if secrets would be included.

@@ -772,6 +772,16 @@ function App() {
                               {PRIORITIES.find((p) => p.id === task.priority)
                                 ?.label ?? task.priority}
                             </span>
+                            {(task.links.length > 0 ||
+                              task.documentIds.length > 0) && (
+                              <span
+                                className="kcard__refs"
+                                title={`${task.links.length} link, ${task.documentIds.length} doküman`}
+                              >
+                                {task.links.length + task.documentIds.length}{' '}
+                                ref
+                              </span>
+                            )}
                             {task.status === 'done' && task.completedAt && (
                               <span className="kcard__when">
                                 {formatTaskDate(task.completedAt)}
@@ -1254,6 +1264,7 @@ function App() {
         }
         projects={studio.projects}
         profiles={studio.profiles}
+        documents={studio.documents}
         onClose={() => setEditingTask(null)}
         onSave={async (id, value: TaskFormValue) => {
           await studio.updateTask(id, {
@@ -1263,6 +1274,9 @@ function App() {
             status: value.status,
             assigneeId: value.assigneeId || null,
             notes: value.notes.trim() || null,
+            dueDate: value.dueDate || null,
+            links: value.links,
+            documentIds: value.documentIds,
             projectId: value.projectId,
             startedAt: value.startedAt,
             completedAt: value.completedAt,

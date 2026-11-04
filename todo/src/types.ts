@@ -127,6 +127,11 @@ export const FINANCE_CATEGORIES = [
   'Diğer',
 ] as const
 
+export interface TaskLink {
+  title: string
+  url: string
+}
+
 export interface Task {
   id: string
   projectId: string
@@ -138,6 +143,8 @@ export interface Task {
   createdAt: string
   dueDate?: string
   notes?: string
+  links: TaskLink[]
+  documentIds: string[]
   sortOrder: number
   /** When moved to In progress */
   startedAt?: string

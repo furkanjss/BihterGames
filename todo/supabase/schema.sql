@@ -120,6 +120,8 @@ create table if not exists public.tasks (
   assignee_id uuid references public.profiles (id) on delete set null,
   due_date date,
   notes text,
+  links jsonb not null default '[]'::jsonb,
+  document_ids jsonb not null default '[]'::jsonb,
   sort_order int not null default 0,
   started_at timestamptz,
   completed_at date,

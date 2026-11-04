@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import {
   formatTaskDate,
   fromDatetimeLocalValue,
@@ -9,11 +9,13 @@ import {
   GAME_AREAS,
   PRIORITIES,
   TASK_STATUSES,
+  type Document,
   type GameArea,
   type Priority,
   type Profile,
   type Project,
   type Task,
+  type TaskLink,
   type TaskStatus,
 } from './types'
 
@@ -25,8 +27,18 @@ export type TaskFormValue = {
   assigneeId: string
   notes: string
   projectId: string
+  dueDate: string
+  links: TaskLink[]
+  documentIds: string[]
   startedAt: string | null
   completedAt: string | null
+}
+
+function normalizeUrl(raw: string): string {
+  const v = raw.trim()
+  if (!v) return ''
+  if (/^https?:\/\//i.test(v)) return v
+  return `https://${v}`
 }
 
 export function TaskModal({
@@ -34,6 +46,7 @@ export function TaskModal({
   task,
   projects,
   profiles,
+  documents,
   onClose,
   onSave,
   onDelete,
@@ -42,18 +55,23 @@ export function TaskModal({
   task: Task | null
   projects: Project[]
   profiles: Profile[]
+  documents: Document[]
   onClose: () => void
   onSave: (id: string, value: TaskFormValue) => void | Promise<void>
   onDelete: (id: string) => void | Promise<void>
 }) {
   const [form, setForm] = useState<TaskFormValue | null>(null)
   const [startedLocal, setStartedLocal] = useState('')
+  const [linkTitle, setLinkTitle] = useState('')
+  const [linkUrl, setLinkUrl] = useState('')
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     if (!open || !task) {
       setForm(null)
       setStartedLocal('')
+      setLinkTitle('')
+      setLinkUrl('')
       return
     }
     setForm({
@@ -64,13 +82,26 @@ export function TaskModal({
       assigneeId: task.assigneeId ?? '',
       notes: task.notes ?? '',
       projectId: task.projectId,
+      dueDate: task.dueDate ?? '',
+      links: task.links ?? [],
+      documentIds: task.documentIds ?? [],
       startedAt: task.startedAt ?? null,
       completedAt: task.completedAt ?? null,
     })
     setStartedLocal(
       task.startedAt ? toDatetimeLocalValue(task.startedAt) : '',
     )
+    setLinkTitle('')
+    setLinkUrl('')
   }, [open, task])
+
+  const projectDocs = useMemo(() => {
+    if (!form) return []
+    return documents
+      .filter((d) => d.projectId === form.projectId)
+      .slice()
+      .sort((a, b) => a.title.localeCompare(b.title, 'tr'))
+  }, [documents, form])
 
   if (!open || !task || !form) return null
 
@@ -88,6 +119,38 @@ export function TaskModal({
     setForm(patch)
   }
 
+  function addLink() {
+    if (!form) return
+    const url = normalizeUrl(linkUrl)
+    if (!url) return
+    const title = linkTitle.trim() || url
+    setForm({
+      ...form,
+      links: [...form.links, { title, url }],
+    })
+    setLinkTitle('')
+    setLinkUrl('')
+  }
+
+  function removeLink(index: number) {
+    if (!form) return
+    setForm({
+      ...form,
+      links: form.links.filter((_, i) => i !== index),
+    })
+  }
+
+  function toggleDoc(id: string) {
+    if (!form) return
+    const has = form.documentIds.includes(id)
+    setForm({
+      ...form,
+      documentIds: has
+        ? form.documentIds.filter((x) => x !== id)
+        : [...form.documentIds, id],
+    })
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!task || !form || !form.title.trim()) return
@@ -96,8 +159,18 @@ export function TaskModal({
       form.status === 'doing' || startedLocal
         ? fromDatetimeLocalValue(startedLocal)
         : form.startedAt
+    const pendingUrl = normalizeUrl(linkUrl)
+    const links = [...form.links]
+    if (pendingUrl) {
+      links.push({
+        title: linkTitle.trim() || pendingUrl,
+        url: pendingUrl,
+      })
+    }
     const payload: TaskFormValue = {
       ...form,
+      links,
+      dueDate: form.dueDate,
       startedAt:
         form.status === 'todo' && !startedLocal ? null : startedAt,
       completedAt:
@@ -117,14 +190,14 @@ export function TaskModal({
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
-        className="modal"
+        className="modal modal--wide"
         role="dialog"
         aria-modal="true"
         aria-labelledby="task-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal__head">
-          <h2 id="task-modal-title">Görevi düzenle</h2>
+          <h2 id="task-modal-title">Görev detayı</h2>
           <button type="button" className="icon-x" onClick={onClose} aria-label="Kapat">
             ×
           </button>
@@ -145,7 +218,13 @@ export function TaskModal({
             Proje
             <select
               value={form.projectId}
-              onChange={(e) => setForm({ ...form, projectId: e.target.value })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  projectId: e.target.value,
+                  documentIds: [],
+                })
+              }
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -220,6 +299,14 @@ export function TaskModal({
 
           <div className="modal__row">
             <label>
+              Son tarih
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+              />
+            </label>
+            <label>
               Başlama saati
               <input
                 type="datetime-local"
@@ -227,35 +314,127 @@ export function TaskModal({
                 onChange={(e) => setStartedLocal(e.target.value)}
               />
             </label>
-            {form.status === 'done' ? (
-              <label>
-                Tamamlanma tarihi
-                <input
-                  type="date"
-                  value={form.completedAt || todayDate()}
-                  onChange={(e) =>
-                    setForm({ ...form, completedAt: e.target.value || null })
-                  }
-                />
-              </label>
-            ) : (
-              <div className="modal__hint">
-                {form.completedAt
-                  ? `Önceki tamamlanma: ${formatTaskDate(form.completedAt)}`
-                  : 'Done’a alınca tarih otomatik girilir.'}
-              </div>
-            )}
           </div>
 
+          {form.status === 'done' ? (
+            <label>
+              Tamamlanma tarihi
+              <input
+                type="date"
+                value={form.completedAt || todayDate()}
+                onChange={(e) =>
+                  setForm({ ...form, completedAt: e.target.value || null })
+                }
+              />
+            </label>
+          ) : form.completedAt ? (
+            <p className="modal__hint">
+              Önceki tamamlanma: {formatTaskDate(form.completedAt)}
+            </p>
+          ) : null}
+
           <label>
-            Detay / not
+            Açıklama / not
             <textarea
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={4}
-              placeholder="Açıklama, checklist, link…"
+              rows={6}
+              placeholder="Ne yapılacak, kabul kriterleri, checklist…"
             />
           </label>
+
+          <section className="task-detail">
+            <header className="task-detail__head">
+              <h3>Linkler</h3>
+              <span>{form.links.length}</span>
+            </header>
+            {form.links.length > 0 && (
+              <ul className="task-detail__list">
+                {form.links.map((link, i) => (
+                  <li key={`${link.url}-${i}`} className="task-detail__item">
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="task-detail__link"
+                    >
+                      <strong>{link.title}</strong>
+                      <em>{link.url}</em>
+                    </a>
+                    <button
+                      type="button"
+                      className="task-detail__remove"
+                      onClick={() => removeLink(i)}
+                      aria-label="Linki kaldır"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="task-detail__add">
+              <input
+                value={linkTitle}
+                onChange={(e) => setLinkTitle(e.target.value)}
+                placeholder="Başlık (opsiyonel)"
+              />
+              <input
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://…"
+              />
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={addLink}
+                disabled={!linkUrl.trim()}
+              >
+                Ekle
+              </button>
+            </div>
+          </section>
+
+          <section className="task-detail">
+            <header className="task-detail__head">
+              <h3>Dokümanlar</h3>
+              <span>{form.documentIds.length}</span>
+            </header>
+            {projectDocs.length === 0 ? (
+              <p className="task-detail__empty">
+                Bu projede henüz doküman yok. Docs sekmesinden ekleyebilirsin.
+              </p>
+            ) : (
+              <ul className="task-detail__docs">
+                {projectDocs.map((doc) => {
+                  const on = form.documentIds.includes(doc.id)
+                  return (
+                    <li key={doc.id}>
+                      <label className={`task-detail__doc ${on ? 'is-on' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => toggleDoc(doc.id)}
+                        />
+                        <span className="task-detail__doc-text">
+                          <strong>{doc.title}</strong>
+                          <em>{doc.url}</em>
+                        </span>
+                      </label>
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="task-detail__open"
+                      >
+                        Aç
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
 
           <div className="modal__actions">
             <button

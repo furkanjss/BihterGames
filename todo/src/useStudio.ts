@@ -24,6 +24,7 @@ import type {
   ProjectKind,
   ProjectStatus,
   Task,
+  TaskLink,
   TaskStatus,
   StaffRate,
   WorkLog,
@@ -418,6 +419,8 @@ export function useStudio(userId: string | undefined) {
         assigneeId: string | null
         dueDate: string | null
         notes: string | null
+        links: TaskLink[]
+        documentIds: string[]
         projectId: string
         sortOrder: number
         startedAt: string | null
@@ -434,6 +437,8 @@ export function useStudio(userId: string | undefined) {
       if (patch.assigneeId !== undefined) row.assignee_id = patch.assigneeId
       if (patch.dueDate !== undefined) row.due_date = patch.dueDate
       if (patch.notes !== undefined) row.notes = patch.notes
+      if (patch.links !== undefined) row.links = patch.links
+      if (patch.documentIds !== undefined) row.document_ids = patch.documentIds
       if (patch.projectId !== undefined) row.project_id = patch.projectId
       if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder
       if (patch.startedAt !== undefined) row.started_at = patch.startedAt

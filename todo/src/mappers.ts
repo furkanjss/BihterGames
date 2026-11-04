@@ -7,9 +7,29 @@ import {
   type Profile,
   type Project,
   type Task,
+  type TaskLink,
   type StaffRate,
   type WorkLog,
 } from './types'
+
+function mapTaskLinks(raw: unknown): TaskLink[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null
+      const row = item as Record<string, unknown>
+      const url = String(row.url ?? '').trim()
+      if (!url) return null
+      const title = String(row.title ?? '').trim() || url
+      return { title, url }
+    })
+    .filter((x): x is TaskLink => x != null)
+}
+
+function mapTaskDocumentIds(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map((id) => String(id)).filter(Boolean)
+}
 
 export function mapProfile(row: Record<string, unknown>): Profile {
   return {
@@ -52,6 +72,8 @@ export function mapTask(row: Record<string, unknown>): Task {
     createdAt: String(row.created_at ?? ''),
     dueDate: row.due_date ? String(row.due_date) : undefined,
     notes: row.notes ? String(row.notes) : undefined,
+    links: mapTaskLinks(row.links),
+    documentIds: mapTaskDocumentIds(row.document_ids),
     sortOrder: Number(row.sort_order ?? 0),
     startedAt: row.started_at ? String(row.started_at) : undefined,
     completedAt: row.completed_at ? String(row.completed_at).slice(0, 10) : undefined,
