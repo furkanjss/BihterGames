@@ -121,6 +121,8 @@ create table if not exists public.tasks (
   due_date date,
   notes text,
   sort_order int not null default 0,
+  started_at timestamptz,
+  completed_at date,
   created_at timestamptz not null default now(),
   created_by uuid references public.profiles (id) on delete set null
 );

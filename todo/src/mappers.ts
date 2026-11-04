@@ -53,6 +53,8 @@ export function mapTask(row: Record<string, unknown>): Task {
     dueDate: row.due_date ? String(row.due_date) : undefined,
     notes: row.notes ? String(row.notes) : undefined,
     sortOrder: Number(row.sort_order ?? 0),
+    startedAt: row.started_at ? String(row.started_at) : undefined,
+    completedAt: row.completed_at ? String(row.completed_at).slice(0, 10) : undefined,
     createdBy: row.created_by ? String(row.created_by) : null,
   }
 }

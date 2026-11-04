@@ -1,5 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
+  formatTaskDate,
+  fromDatetimeLocalValue,
+  toDatetimeLocalValue,
+  todayDate,
+} from './taskTime'
+import {
   GAME_AREAS,
   PRIORITIES,
   TASK_STATUSES,
@@ -19,6 +25,8 @@ export type TaskFormValue = {
   assigneeId: string
   notes: string
   projectId: string
+  startedAt: string | null
+  completedAt: string | null
 }
 
 export function TaskModal({
@@ -39,11 +47,13 @@ export function TaskModal({
   onDelete: (id: string) => void | Promise<void>
 }) {
   const [form, setForm] = useState<TaskFormValue | null>(null)
+  const [startedLocal, setStartedLocal] = useState('')
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     if (!open || !task) {
       setForm(null)
+      setStartedLocal('')
       return
     }
     setForm({
@@ -54,16 +64,47 @@ export function TaskModal({
       assigneeId: task.assigneeId ?? '',
       notes: task.notes ?? '',
       projectId: task.projectId,
+      startedAt: task.startedAt ?? null,
+      completedAt: task.completedAt ?? null,
     })
+    setStartedLocal(
+      task.startedAt ? toDatetimeLocalValue(task.startedAt) : '',
+    )
   }, [open, task])
 
   if (!open || !task || !form) return null
+
+  function setStatus(next: TaskStatus) {
+    if (!form) return
+    const patch: TaskFormValue = { ...form, status: next }
+    if (next === 'done' && form.status !== 'done') {
+      patch.completedAt = form.completedAt || todayDate()
+    } else if (next !== 'done' && form.status === 'done') {
+      patch.completedAt = null
+    }
+    if (next === 'doing' && !startedLocal) {
+      setStartedLocal(toDatetimeLocalValue())
+    }
+    setForm(patch)
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!task || !form || !form.title.trim()) return
     const id = task.id
-    const payload = form
+    const startedAt =
+      form.status === 'doing' || startedLocal
+        ? fromDatetimeLocalValue(startedLocal)
+        : form.startedAt
+    const payload: TaskFormValue = {
+      ...form,
+      startedAt:
+        form.status === 'todo' && !startedLocal ? null : startedAt,
+      completedAt:
+        form.status === 'done'
+          ? form.completedAt || todayDate()
+          : null,
+    }
     setBusy(true)
     try {
       await onSave(id, payload)
@@ -152,9 +193,7 @@ export function TaskModal({
               Durum
               <select
                 value={form.status}
-                onChange={(e) =>
-                  setForm({ ...form, status: e.target.value as TaskStatus })
-                }
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
               >
                 {TASK_STATUSES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -177,6 +216,35 @@ export function TaskModal({
                 ))}
               </select>
             </label>
+          </div>
+
+          <div className="modal__row">
+            <label>
+              Başlama saati
+              <input
+                type="datetime-local"
+                value={startedLocal}
+                onChange={(e) => setStartedLocal(e.target.value)}
+              />
+            </label>
+            {form.status === 'done' ? (
+              <label>
+                Tamamlanma tarihi
+                <input
+                  type="date"
+                  value={form.completedAt || todayDate()}
+                  onChange={(e) =>
+                    setForm({ ...form, completedAt: e.target.value || null })
+                  }
+                />
+              </label>
+            ) : (
+              <div className="modal__hint">
+                {form.completedAt
+                  ? `Önceki tamamlanma: ${formatTaskDate(form.completedAt)}`
+                  : 'Done’a alınca tarih otomatik girilir.'}
+              </div>
+            )}
           </div>
 
           <label>

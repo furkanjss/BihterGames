@@ -11,6 +11,12 @@ import { LoginView } from './LoginView'
 import { ManagementView } from './ManagementView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
 import { TaskModal, type TaskFormValue } from './TaskModal'
+import {
+  formatTaskDate,
+  formatTaskTime,
+  fromDatetimeLocalValue,
+  toDatetimeLocalValue,
+} from './taskTime'
 import type { ProjectStatus, Task } from './types'
 import {
   GAME_AREAS,
@@ -68,6 +74,13 @@ function App() {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [modalKind, setModalKind] = useState<ProjectKind>('game')
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [startPrompt, setStartPrompt] = useState<{
+    taskId: string
+    status: TaskStatus
+    toIndex: number
+    visibleIds: string[]
+    startedLocal: string
+  } | null>(null)
 
   const myTasks = useMemo(() => {
     if (!auth.user) return []
@@ -245,7 +258,29 @@ function App() {
       if (toIndex > fromIndex) toIndex -= 1
     }
 
+    const moving = studio.tasks.find((t) => t.id === id)
+    if (status === 'doing' && moving && moving.status !== 'doing') {
+      setStartPrompt({
+        taskId: id,
+        status,
+        toIndex,
+        visibleIds,
+        startedLocal: toDatetimeLocalValue(moving.startedAt),
+      })
+      return
+    }
+
     await studio.moveTask(id, status, toIndex, visibleIds)
+  }
+
+  async function confirmStartPrompt() {
+    if (!startPrompt) return
+    const startedAt = fromDatetimeLocalValue(startPrompt.startedLocal)
+    const { taskId, status, toIndex, visibleIds } = startPrompt
+    setStartPrompt(null)
+    await studio.moveTask(taskId, status, toIndex, visibleIds, {
+      startedAt: startedAt ?? new Date().toISOString(),
+    })
   }
 
   const isOwner =
@@ -575,110 +610,98 @@ function App() {
         )}
 
         {view === 'tasks' && (
-          <>
-            <header className="topbar">
-              <div className="topbar__title">
-                <p className="eyebrow">Board</p>
+          <div className="board">
+            <header className="board__top">
+              <div className="board__title">
+                <p className="board__eyebrow">Board</p>
                 <h1>Görevler</h1>
               </div>
-            </header>
-
-            <div className="filters">
-              <select
-                value={projectFilter}
-                onChange={(e) => {
-                  const v = e.target.value
-                  setProjectFilter(v)
-                  if (v !== 'all') studio.setActiveProjectId(v)
-                }}
-                aria-label="Proje filtresi"
-              >
-                <option value="all">Tüm projeler</option>
-                {studio.projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <span className="muted filters__hint">
-                Kartları sürükleyip sütunlara bırak
-              </span>
-            </div>
-
-            <form className="task-composer" onSubmit={submitTask}>
-              <div className="task-composer__head">
-                <p className="task-composer__label">Görev ekle</p>
+              <div className="board__toolbar">
+                <select
+                  value={projectFilter}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    setProjectFilter(v)
+                    if (v !== 'all') studio.setActiveProjectId(v)
+                  }}
+                  aria-label="Proje filtresi"
+                >
+                  <option value="all">Tüm projeler</option>
+                  {studio.projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
-                  className={`pill pill--mine ${mineOnly ? 'is-active' : ''}`}
+                  className={`board__mine ${mineOnly ? 'is-active' : ''}`}
                   onClick={() => setMineOnly((v) => !v)}
                 >
                   Bana Atanmış
                 </button>
               </div>
+            </header>
+
+            <form className="board__composer" onSubmit={submitTask}>
               <input
-                className="composer__title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Görev başlığı…"
+                placeholder="Yeni görev…"
                 required
               />
-              <div className="composer__row task-composer__meta">
-                <label className="task-composer__field">
-                  <span>Alan</span>
-                  <select
-                    value={area}
-                    onChange={(e) => setArea(e.target.value as GameArea)}
-                  >
-                    {GAME_AREAS.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="task-composer__field">
-                  <span>Öncelik</span>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value as Priority)}
-                  >
-                    {PRIORITIES.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="task-composer__field">
-                  <span>Kişi</span>
-                  <select
-                    value={assigneeId}
-                    onChange={(e) => setAssigneeId(e.target.value)}
-                  >
-                    <option value="">Atanmamış</option>
-                    {studio.profiles.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.displayName || p.id.slice(0, 6)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button type="submit" className="btn btn--lime">
-                  Görev ekle
-                </button>
-              </div>
+              <select
+                value={area}
+                onChange={(e) => setArea(e.target.value as GameArea)}
+                aria-label="Alan"
+              >
+                {GAME_AREAS.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Priority)}
+                aria-label="Öncelik"
+              >
+                {PRIORITIES.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={assigneeId}
+                onChange={(e) => setAssigneeId(e.target.value)}
+                aria-label="Kişi"
+              >
+                <option value="">Atanmamış</option>
+                {studio.profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.displayName || p.id.slice(0, 6)}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className="board__add">
+                Ekle
+              </button>
             </form>
 
             <div className="kanban">
               {columns.map((col) => (
                 <section
                   key={col.id}
-                  className={`kanban__col ${dragOverCol === col.id ? 'is-drop' : ''}`}
+                  className={`kanban__col kanban__col--${col.id}${dragOverCol === col.id ? ' is-drop' : ''}`}
                 >
                   <header className="kanban__head">
-                    <h2>{col.label}</h2>
-                    <span>{col.tasks.length}</span>
+                    <h2>
+                      <span className={`kanban__badge kanban__badge--${col.id}`}>
+                        {col.label}
+                      </span>
+                    </h2>
+                    <span className="kanban__count">{col.tasks.length}</span>
                   </header>
                   <ul
                     className="kanban__list"
@@ -694,6 +717,7 @@ function App() {
                         GAME_AREAS.find((a) => a.id === task.area)?.label ??
                         task.area
                       const who = studio.profileName(task.assigneeId)
+                      const initial = (who || '?').trim().charAt(0).toUpperCase()
                       const showBefore =
                         dragOverCol === col.id &&
                         dropIndex === index &&
@@ -737,16 +761,36 @@ function App() {
                             </button>
                           </div>
                           <div className="kcard__meta">
-                            {projectFilter === 'all' && (
-                              <span className="tag">{proj?.name}</span>
+                            {projectFilter === 'all' && proj && (
+                              <span className="btag btag--project">
+                                {proj.name}
+                              </span>
                             )}
-                            <span className="tag">{areaLabel}</span>
-                            <span className={`prio prio--${task.priority}`}>
+                            <span className={`btag btag--${task.area}`}>
+                              {areaLabel}
+                            </span>
+                            <span className={`btag btag--prio-${task.priority}`}>
                               {PRIORITIES.find((p) => p.id === task.priority)
                                 ?.label ?? task.priority}
                             </span>
+                            {task.status === 'done' && task.completedAt && (
+                              <span className="kcard__when">
+                                {formatTaskDate(task.completedAt)}
+                              </span>
+                            )}
+                            {task.status === 'doing' && task.startedAt && (
+                              <span className="kcard__when">
+                                {formatTaskTime(task.startedAt)}
+                              </span>
+                            )}
                             {task.assigneeId && (
-                              <span className="kcard__who">{who}</span>
+                              <span
+                                className="kcard__avatar"
+                                title={who}
+                                aria-label={who}
+                              >
+                                {initial}
+                              </span>
                             )}
                           </div>
                         </li>
@@ -760,7 +804,7 @@ function App() {
                 </section>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {view === 'projects' && (
@@ -1208,7 +1252,11 @@ function App() {
 
       <TaskModal
         open={Boolean(editingTask)}
-        task={editingTask}
+        task={
+          editingTask
+            ? (studio.tasks.find((t) => t.id === editingTask.id) ?? editingTask)
+            : null
+        }
         projects={studio.projects}
         profiles={studio.profiles}
         onClose={() => setEditingTask(null)}
@@ -1221,12 +1269,79 @@ function App() {
             assigneeId: value.assigneeId || null,
             notes: value.notes.trim() || null,
             projectId: value.projectId,
+            startedAt: value.startedAt,
+            completedAt: value.completedAt,
           })
         }}
         onDelete={async (id) => {
           await studio.deleteTask(id)
         }}
       />
+
+      {startPrompt && (
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onClick={() => setStartPrompt(null)}
+        >
+          <div
+            className="modal modal--sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="start-time-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="modal__head">
+              <h2 id="start-time-title">Başlama saati</h2>
+              <button
+                type="button"
+                className="icon-x"
+                onClick={() => setStartPrompt(null)}
+                aria-label="Kapat"
+              >
+                ×
+              </button>
+            </header>
+            <form
+              className="modal__form"
+              onSubmit={(e) => {
+                e.preventDefault()
+                void confirmStartPrompt()
+              }}
+            >
+              <label>
+                Ne zaman başladın?
+                <input
+                  type="datetime-local"
+                  value={startPrompt.startedLocal}
+                  onChange={(e) =>
+                    setStartPrompt({
+                      ...startPrompt,
+                      startedLocal: e.target.value,
+                    })
+                  }
+                  autoFocus
+                  required
+                />
+              </label>
+              <div className="modal__actions">
+                <div className="modal__actions-right">
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    onClick={() => setStartPrompt(null)}
+                  >
+                    İptal
+                  </button>
+                  <button type="submit" className="btn btn--lime">
+                    Progress’e al
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

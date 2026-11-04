@@ -139,6 +139,10 @@ export interface Task {
   dueDate?: string
   notes?: string
   sortOrder: number
+  /** When moved to In progress */
+  startedAt?: string
+  /** Calendar date when moved to Done (YYYY-MM-DD) */
+  completedAt?: string
   createdBy?: string | null
 }
 

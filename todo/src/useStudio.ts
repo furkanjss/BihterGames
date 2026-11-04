@@ -29,6 +29,7 @@ import type {
   WorkLog,
 } from './types'
 import { isParkedProjectStatus, OWNER_EMAIL } from './types'
+import { todayDate } from './taskTime'
 
 async function currentUserIsOwner(): Promise<boolean> {
   if (!supabase) return false
@@ -419,9 +420,12 @@ export function useStudio(userId: string | undefined) {
         notes: string | null
         projectId: string
         sortOrder: number
+        startedAt: string | null
+        completedAt: string | null
       }>,
     ) => {
       if (!supabase) return
+      const current = tasks.find((t) => t.id === id)
       const row: Record<string, unknown> = {}
       if (patch.title !== undefined) row.title = patch.title
       if (patch.area !== undefined) row.area = patch.area
@@ -432,6 +436,28 @@ export function useStudio(userId: string | undefined) {
       if (patch.notes !== undefined) row.notes = patch.notes
       if (patch.projectId !== undefined) row.project_id = patch.projectId
       if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder
+      if (patch.startedAt !== undefined) row.started_at = patch.startedAt
+      if (patch.completedAt !== undefined) row.completed_at = patch.completedAt
+
+      if (patch.status !== undefined && current) {
+        if (patch.status === 'done' && current.status !== 'done') {
+          if (patch.completedAt === undefined) {
+            row.completed_at = todayDate()
+          }
+        } else if (patch.status !== 'done' && current.status === 'done') {
+          if (patch.completedAt === undefined) {
+            row.completed_at = null
+          }
+        }
+        if (
+          patch.status === 'doing' &&
+          current.status !== 'doing' &&
+          patch.startedAt === undefined &&
+          !current.startedAt
+        ) {
+          row.started_at = new Date().toISOString()
+        }
+      }
 
       const { data, error: err } = await supabase
         .from('tasks')
@@ -446,7 +472,7 @@ export function useStudio(userId: string | undefined) {
       const mapped = mapTask(data as Record<string, unknown>)
       setTasks((prev) => prev.map((t) => (t.id === id ? mapped : t)))
     },
-    [],
+    [tasks],
   )
 
   /**
@@ -459,6 +485,7 @@ export function useStudio(userId: string | undefined) {
       toStatus: TaskStatus,
       toIndex: number,
       visibleIds: string[],
+      extras?: { startedAt?: string | null },
     ) => {
       const client = supabase
       if (!client) return
@@ -482,12 +509,19 @@ export function useStudio(userId: string | undefined) {
 
       const targetOrder = [...visibleOrder, ...hiddenInTarget]
 
-      const updates: { id: string; status: TaskStatus; sortOrder: number }[] =
-        targetOrder.map((tid, i) => ({
-          id: tid,
-          status: toStatus,
-          sortOrder: i,
-        }))
+      type MoveUpdate = {
+        id: string
+        status: TaskStatus
+        sortOrder: number
+        startedAt?: string | null
+        completedAt?: string | null
+      }
+
+      const updates: MoveUpdate[] = targetOrder.map((tid, i) => ({
+        id: tid,
+        status: toStatus,
+        sortOrder: i,
+      }))
 
       if (moving.status !== toStatus) {
         const oldRemaining = tasks
@@ -501,21 +535,53 @@ export function useStudio(userId: string | undefined) {
             sortOrder: i,
           })
         })
+
+        const moved = updates.find((u) => u.id === id)
+        if (moved) {
+          if (toStatus === 'done') {
+            moved.completedAt = todayDate()
+          } else if (moving.status === 'done') {
+            moved.completedAt = null
+          }
+          if (toStatus === 'doing') {
+            moved.startedAt =
+              extras?.startedAt !== undefined
+                ? extras.startedAt
+                : moving.startedAt ?? new Date().toISOString()
+          }
+        }
       }
 
       const byId = new Map(updates.map((u) => [u.id, u]))
       setTasks((prev) =>
         prev.map((t) => {
           const u = byId.get(t.id)
-          return u ? { ...t, status: u.status, sortOrder: u.sortOrder } : t
+          if (!u) return t
+          return {
+            ...t,
+            status: u.status,
+            sortOrder: u.sortOrder,
+            ...(u.startedAt !== undefined
+              ? { startedAt: u.startedAt ?? undefined }
+              : {}),
+            ...(u.completedAt !== undefined
+              ? { completedAt: u.completedAt ?? undefined }
+              : {}),
+          }
         }),
       )
 
       const results = await Promise.all(
         updates.map(async (u) => {
+          const row: Record<string, unknown> = {
+            status: u.status,
+            sort_order: u.sortOrder,
+          }
+          if (u.startedAt !== undefined) row.started_at = u.startedAt
+          if (u.completedAt !== undefined) row.completed_at = u.completedAt
           const { error: err } = await client
             .from('tasks')
-            .update({ status: u.status, sort_order: u.sortOrder })
+            .update(row)
             .eq('id', u.id)
           return err
         }),
