@@ -772,6 +772,25 @@ function App() {
                               {PRIORITIES.find((p) => p.id === task.priority)
                                 ?.label ?? task.priority}
                             </span>
+                            {task.subtasks.length > 0 && (
+                              <span
+                                className="kcard__refs kcard__refs--sub"
+                                title="Subtask"
+                              >
+                                {
+                                  task.subtasks.filter((s) => s.done).length
+                                }
+                                /{task.subtasks.length}
+                              </span>
+                            )}
+                            {task.images.length > 0 && (
+                              <span
+                                className="kcard__refs kcard__refs--img"
+                                title="Görsel"
+                              >
+                                {task.images.length} img
+                              </span>
+                            )}
                             {task.links.length > 0 && (
                               <span
                                 className="kcard__refs"
@@ -1273,6 +1292,8 @@ function App() {
             notes: value.notes.trim() || null,
             dueDate: value.dueDate || null,
             links: value.links,
+            subtasks: value.subtasks,
+            images: value.images,
             projectId: value.projectId,
             startedAt: value.startedAt,
             completedAt: value.completedAt,

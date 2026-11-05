@@ -132,6 +132,20 @@ export interface TaskLink {
   url: string
 }
 
+export interface TaskSubtask {
+  id: string
+  title: string
+  done: boolean
+}
+
+export interface TaskImage {
+  id: string
+  url: string
+  name?: string
+  /** Storage object path when uploaded to Supabase */
+  path?: string
+}
+
 export interface Task {
   id: string
   projectId: string
@@ -145,6 +159,8 @@ export interface Task {
   notes?: string
   links: TaskLink[]
   documentIds: string[]
+  subtasks: TaskSubtask[]
+  images: TaskImage[]
   sortOrder: number
   /** When moved to In progress */
   startedAt?: string

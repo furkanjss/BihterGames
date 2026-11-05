@@ -1,10 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   formatTaskDate,
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
   todayDate,
 } from './taskTime'
+import { removeTaskImageFile, uploadTaskImage } from './taskMedia'
 import {
   GAME_AREAS,
   PRIORITIES,
@@ -14,7 +15,9 @@ import {
   type Profile,
   type Project,
   type Task,
+  type TaskImage,
   type TaskLink,
+  type TaskSubtask,
   type TaskStatus,
 } from './types'
 
@@ -28,6 +31,8 @@ export type TaskFormValue = {
   projectId: string
   dueDate: string
   links: TaskLink[]
+  subtasks: TaskSubtask[]
+  images: TaskImage[]
   startedAt: string | null
   completedAt: string | null
 }
@@ -60,7 +65,12 @@ export function TaskModal({
   const [startedLocal, setStartedLocal] = useState('')
   const [linkTitle, setLinkTitle] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
+  const [subtaskTitle, setSubtaskTitle] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [mediaError, setMediaError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!open || !task) {
@@ -68,6 +78,9 @@ export function TaskModal({
       setStartedLocal('')
       setLinkTitle('')
       setLinkUrl('')
+      setSubtaskTitle('')
+      setImageUrl('')
+      setMediaError(null)
       return
     }
     setForm({
@@ -80,6 +93,8 @@ export function TaskModal({
       projectId: task.projectId,
       dueDate: task.dueDate ?? '',
       links: task.links ?? [],
+      subtasks: task.subtasks ?? [],
+      images: task.images ?? [],
       startedAt: task.startedAt ?? null,
       completedAt: task.completedAt ?? null,
     })
@@ -88,9 +103,14 @@ export function TaskModal({
     )
     setLinkTitle('')
     setLinkUrl('')
+    setSubtaskTitle('')
+    setImageUrl('')
+    setMediaError(null)
   }, [open, task])
 
   if (!open || !task || !form) return null
+
+  const doneCount = form.subtasks.filter((s) => s.done).length
 
   function setStatus(next: TaskStatus) {
     if (!form) return
@@ -127,6 +147,84 @@ export function TaskModal({
     })
   }
 
+  function addSubtask() {
+    if (!form) return
+    const title = subtaskTitle.trim()
+    if (!title) return
+    setForm({
+      ...form,
+      subtasks: [
+        ...form.subtasks,
+        { id: crypto.randomUUID(), title, done: false },
+      ],
+    })
+    setSubtaskTitle('')
+  }
+
+  function toggleSubtask(id: string) {
+    if (!form) return
+    setForm({
+      ...form,
+      subtasks: form.subtasks.map((s) =>
+        s.id === id ? { ...s, done: !s.done } : s,
+      ),
+    })
+  }
+
+  function removeSubtask(id: string) {
+    if (!form) return
+    setForm({
+      ...form,
+      subtasks: form.subtasks.filter((s) => s.id !== id),
+    })
+  }
+
+  function addImageByUrl() {
+    if (!form) return
+    const url = normalizeUrl(imageUrl)
+    if (!url) return
+    setForm({
+      ...form,
+      images: [
+        ...form.images,
+        { id: crypto.randomUUID(), url, name: 'Link' },
+      ],
+    })
+    setImageUrl('')
+    setMediaError(null)
+  }
+
+  async function onPickFiles(files: FileList | null) {
+    if (!files?.length || !form || !task) return
+    setMediaError(null)
+    setUploading(true)
+    const next = [...form.images]
+    try {
+      for (const file of Array.from(files)) {
+        const { image, error } = await uploadTaskImage(task.id, file)
+        if (error || !image) {
+          setMediaError(error || 'Yükleme başarısız')
+          continue
+        }
+        next.push(image)
+      }
+      setForm({ ...form, images: next })
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  async function removeImage(id: string) {
+    if (!form) return
+    const img = form.images.find((i) => i.id === id)
+    setForm({
+      ...form,
+      images: form.images.filter((i) => i.id !== id),
+    })
+    if (img?.path) await removeTaskImageFile(img.path)
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!task || !form || !form.title.trim()) return
@@ -143,9 +241,29 @@ export function TaskModal({
         url: pendingUrl,
       })
     }
+    const pendingSub = subtaskTitle.trim()
+    const subtasks = [...form.subtasks]
+    if (pendingSub) {
+      subtasks.push({
+        id: crypto.randomUUID(),
+        title: pendingSub,
+        done: false,
+      })
+    }
+    const pendingImg = normalizeUrl(imageUrl)
+    const images = [...form.images]
+    if (pendingImg) {
+      images.push({
+        id: crypto.randomUUID(),
+        url: pendingImg,
+        name: 'Link',
+      })
+    }
     const payload: TaskFormValue = {
       ...form,
       links,
+      subtasks,
+      images,
       dueDate: form.dueDate,
       startedAt:
         form.status === 'todo' && !startedLocal ? null : startedAt,
@@ -308,10 +426,124 @@ export function TaskModal({
             <textarea
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={6}
-              placeholder="Ne yapılacak, kabul kriterleri, checklist…"
+              rows={5}
+              placeholder="Ne yapılacak, kabul kriterleri…"
             />
           </label>
+
+          <section className="task-detail">
+            <header className="task-detail__head">
+              <h3>Subtask</h3>
+              <span>
+                {doneCount}/{form.subtasks.length}
+              </span>
+            </header>
+            {form.subtasks.length > 0 && (
+              <ul className="task-detail__subs">
+                {form.subtasks.map((s) => (
+                  <li key={s.id} className={s.done ? 'is-done' : ''}>
+                    <label className="task-detail__sub">
+                      <input
+                        type="checkbox"
+                        checked={s.done}
+                        onChange={() => toggleSubtask(s.id)}
+                      />
+                      <span>{s.title}</span>
+                    </label>
+                    <button
+                      type="button"
+                      className="task-detail__remove"
+                      onClick={() => removeSubtask(s.id)}
+                      aria-label="Subtask sil"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="task-detail__add task-detail__add--single">
+              <input
+                value={subtaskTitle}
+                onChange={(e) => setSubtaskTitle(e.target.value)}
+                placeholder="Alt görev ekle…"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addSubtask()
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={addSubtask}
+                disabled={!subtaskTitle.trim()}
+              >
+                Ekle
+              </button>
+            </div>
+          </section>
+
+          <section className="task-detail">
+            <header className="task-detail__head">
+              <h3>Görseller</h3>
+              <span>{form.images.length}</span>
+            </header>
+            {form.images.length > 0 && (
+              <ul className="task-detail__images">
+                {form.images.map((img) => (
+                  <li key={img.id}>
+                    <a href={img.url} target="_blank" rel="noreferrer">
+                      <img src={img.url} alt={img.name || 'Görsel'} />
+                    </a>
+                    <button
+                      type="button"
+                      className="task-detail__remove"
+                      onClick={() => void removeImage(img.id)}
+                      aria-label="Görseli kaldır"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="task-detail__media-actions">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) => void onPickFiles(e.target.files)}
+              />
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                {uploading ? 'Yükleniyor…' : 'Dosya yükle'}
+              </button>
+              <div className="task-detail__add task-detail__add--single">
+                <input
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="veya görsel URL…"
+                />
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={addImageByUrl}
+                  disabled={!imageUrl.trim()}
+                >
+                  URL ekle
+                </button>
+              </div>
+            </div>
+            {mediaError && <p className="task-detail__error">{mediaError}</p>}
+          </section>
 
           <section className="task-detail">
             <header className="task-detail__head">
@@ -386,7 +618,7 @@ export function TaskModal({
               <button type="button" className="btn btn--ghost" onClick={onClose}>
                 İptal
               </button>
-              <button type="submit" className="btn btn--lime" disabled={busy}>
+              <button type="submit" className="btn btn--lime" disabled={busy || uploading}>
                 {busy ? 'Kaydediliyor…' : 'Kaydet'}
               </button>
             </div>

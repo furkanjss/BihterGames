@@ -24,7 +24,9 @@ import type {
   ProjectKind,
   ProjectStatus,
   Task,
+  TaskImage,
   TaskLink,
+  TaskSubtask,
   TaskStatus,
   StaffRate,
   WorkLog,
@@ -421,6 +423,8 @@ export function useStudio(userId: string | undefined) {
         notes: string | null
         links: TaskLink[]
         documentIds: string[]
+        subtasks: TaskSubtask[]
+        images: TaskImage[]
         projectId: string
         sortOrder: number
         startedAt: string | null
@@ -439,6 +443,8 @@ export function useStudio(userId: string | undefined) {
       if (patch.notes !== undefined) row.notes = patch.notes
       if (patch.links !== undefined) row.links = patch.links
       if (patch.documentIds !== undefined) row.document_ids = patch.documentIds
+      if (patch.subtasks !== undefined) row.subtasks = patch.subtasks
+      if (patch.images !== undefined) row.images = patch.images
       if (patch.projectId !== undefined) row.project_id = patch.projectId
       if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder
       if (patch.startedAt !== undefined) row.started_at = patch.startedAt

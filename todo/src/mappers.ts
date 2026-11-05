@@ -7,7 +7,9 @@ import {
   type Profile,
   type Project,
   type Task,
+  type TaskImage,
   type TaskLink,
+  type TaskSubtask,
   type StaffRate,
   type WorkLog,
 } from './types'
@@ -29,6 +31,41 @@ function mapTaskLinks(raw: unknown): TaskLink[] {
 function mapTaskDocumentIds(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
   return raw.map((id) => String(id)).filter(Boolean)
+}
+
+function mapTaskSubtasks(raw: unknown): TaskSubtask[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null
+      const row = item as Record<string, unknown>
+      const title = String(row.title ?? '').trim()
+      if (!title) return null
+      return {
+        id: String(row.id ?? crypto.randomUUID()),
+        title,
+        done: Boolean(row.done),
+      }
+    })
+    .filter((x): x is TaskSubtask => x != null)
+}
+
+function mapTaskImages(raw: unknown): TaskImage[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null
+      const row = item as Record<string, unknown>
+      const url = String(row.url ?? '').trim()
+      if (!url) return null
+      return {
+        id: String(row.id ?? crypto.randomUUID()),
+        url,
+        name: row.name ? String(row.name) : undefined,
+        path: row.path ? String(row.path) : undefined,
+      }
+    })
+    .filter((x): x is TaskImage => x != null)
 }
 
 export function mapProfile(row: Record<string, unknown>): Profile {
@@ -74,6 +111,8 @@ export function mapTask(row: Record<string, unknown>): Task {
     notes: row.notes ? String(row.notes) : undefined,
     links: mapTaskLinks(row.links),
     documentIds: mapTaskDocumentIds(row.document_ids),
+    subtasks: mapTaskSubtasks(row.subtasks),
+    images: mapTaskImages(row.images),
     sortOrder: Number(row.sort_order ?? 0),
     startedAt: row.started_at ? String(row.started_at) : undefined,
     completedAt: row.completed_at ? String(row.completed_at).slice(0, 10) : undefined,
