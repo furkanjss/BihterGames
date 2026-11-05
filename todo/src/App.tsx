@@ -45,7 +45,6 @@ type View =
   | 'hours'
   | 'ideas'
   | 'management'
-  | 'notifications'
 
 function App() {
   const auth = useAuth()
@@ -84,6 +83,7 @@ function App() {
     visibleIds: string[]
     startedLocal: string
   } | null>(null)
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false)
 
   const myTasks = useMemo(() => {
     if (!auth.user) return []
@@ -335,7 +335,6 @@ function App() {
           {(
             [
               ['dashboard', 'Dashboard'],
-              ['notifications', 'Bildirimler'],
               ['tasks', 'Görevler'],
               ['projects', 'Projeler'],
               ['docs', 'Dökümanlar'],
@@ -357,10 +356,7 @@ function App() {
                 className={`view-nav__btn ${view === id ? 'is-active' : ''}`}
                 onClick={() => setView(id)}
               >
-                <span>{label}</span>
-                {id === 'notifications' && notifs.count > 0 && (
-                  <span className="view-nav__badge">{notifs.count}</span>
-                )}
+                {label}
               </button>
             ))}
         </nav>
@@ -451,8 +447,7 @@ function App() {
             <div>
               <strong>Size yeni atanmış görevler var</strong>
               <p>
-                {notifs.count} yeni görev ataması — Bildirimler’den
-                inceleyebilirsin.
+                {notifs.count} yeni görev — sağ üstteki zil ikonuna bak.
               </p>
             </div>
             <div className="banner-notif__actions">
@@ -460,7 +455,8 @@ function App() {
                 type="button"
                 className="btn btn--lime btn--sm"
                 onClick={() => {
-                  setView('notifications')
+                  setView('dashboard')
+                  setNotifPanelOpen(true)
                   notifs.dismissBanner()
                 }}
               >
@@ -477,79 +473,118 @@ function App() {
           </div>
         )}
 
-        {view === 'notifications' && (
-          <>
-            <header className="topbar">
-              <div className="topbar__title">
-                <p className="eyebrow">Inbox</p>
-                <h1>Bildirimler</h1>
-              </div>
-              {notifs.count > 0 && (
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  onClick={() => notifs.markAllSeen()}
-                >
-                  Tümünü okundu say
-                </button>
-              )}
-            </header>
-
-            {notifs.count === 0 ? (
-              <p className="pad muted">Yeni atanmış görev yok.</p>
-            ) : (
-              <>
-                <p className="pad notif-lede">
-                  Size yeni atanmış {notifs.count} görev var. Aynı görev için
-                  bir daha bildirim gösterilmez.
-                </p>
-                <ul className="notif-list">
-                  {notifs.unread.map((t) => {
-                    const proj = studio.projects.find(
-                      (p) => p.id === t.projectId,
-                    )
-                    return (
-                      <li key={t.id} className="notif-card">
-                        <button
-                          type="button"
-                          className="notif-card__main"
-                          onClick={() => {
-                            notifs.markSeen([t.id])
-                            setProjectFilter(t.projectId)
-                            studio.setActiveProjectId(t.projectId)
-                            setEditingTask(t)
-                            setView('tasks')
-                          }}
-                        >
-                          <strong>{t.title}</strong>
-                          <span>
-                            {proj?.name ?? 'Proje'} ·{' '}
-                            {TASK_STATUSES.find((s) => s.id === t.status)
-                              ?.label ?? t.status}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn--ghost btn--sm"
-                          onClick={() => notifs.markSeen([t.id])}
-                        >
-                          Okundu
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </>
-            )}
-          </>
-        )}
-
         {view === 'dashboard' && (
           <>
             <header className="topbar">
               <div className="topbar__title">
                 <p className="eyebrow">Studio HQ</p>
                 <h1>Bihter Games — Dashboard</h1>
+              </div>
+              <div className="topbar__actions notif-bell-wrap">
+                <button
+                  type="button"
+                  className={`notif-bell${notifs.count > 0 ? ' has-unread' : ''}${notifPanelOpen ? ' is-open' : ''}`}
+                  aria-label={
+                    notifs.count > 0
+                      ? `${notifs.count} yeni bildirim`
+                      : 'Bildirimler'
+                  }
+                  aria-expanded={notifPanelOpen}
+                  onClick={() => setNotifPanelOpen((v) => !v)}
+                >
+                  <span className="notif-bell__ring" aria-hidden />
+                  <svg
+                    className="notif-bell__icon"
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
+                    <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
+                  </svg>
+                  {notifs.count > 0 && (
+                    <span className="notif-bell__count">
+                      {notifs.count > 9 ? '9+' : notifs.count}
+                    </span>
+                  )}
+                </button>
+
+                {notifPanelOpen && (
+                  <div className="notif-panel" role="dialog" aria-label="Bildirimler">
+                    <header className="notif-panel__head">
+                      <div>
+                        <p className="notif-panel__eyebrow">Bildirimler</p>
+                        <h2>
+                          {notifs.count > 0
+                            ? 'Yeni atanan görevler'
+                            : 'Hepsi güncel'}
+                        </h2>
+                      </div>
+                      {notifs.count > 0 && (
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => notifs.markAllSeen()}
+                        >
+                          Tümünü okundu say
+                        </button>
+                      )}
+                    </header>
+
+                    {notifs.count === 0 ? (
+                      <p className="notif-panel__empty">
+                        Yeni atanmış görev yok.
+                      </p>
+                    ) : (
+                      <ul className="notif-panel__list">
+                        {notifs.unread.map((t) => {
+                          const proj = studio.projects.find(
+                            (p) => p.id === t.projectId,
+                          )
+                          return (
+                            <li key={t.id}>
+                              <button
+                                type="button"
+                                className="notif-panel__item"
+                                onClick={() => {
+                                  notifs.markSeen([t.id])
+                                  setNotifPanelOpen(false)
+                                  setProjectFilter(t.projectId)
+                                  studio.setActiveProjectId(t.projectId)
+                                  setEditingTask(t)
+                                  setView('tasks')
+                                }}
+                              >
+                                <span className="notif-panel__dot" aria-hidden />
+                                <span className="notif-panel__text">
+                                  <strong>{t.title}</strong>
+                                  <em>
+                                    {proj?.name ?? 'Proje'} ·{' '}
+                                    {TASK_STATUSES.find((s) => s.id === t.status)
+                                      ?.label ?? t.status}
+                                  </em>
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                className="notif-panel__read"
+                                onClick={() => notifs.markSeen([t.id])}
+                              >
+                                Okundu
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
             </header>
 
