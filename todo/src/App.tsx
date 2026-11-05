@@ -33,6 +33,7 @@ import {
 } from './types'
 
 type ProjectListFilter = 'active' | 'on-hold' | 'cancelled' | 'all'
+import { useAssignmentNotifications } from './useAssignmentNotifications'
 import { useAuth } from './useAuth'
 import { useStudio } from './useStudio'
 
@@ -44,6 +45,7 @@ type View =
   | 'hours'
   | 'ideas'
   | 'management'
+  | 'notifications'
 
 function App() {
   const auth = useAuth()
@@ -89,6 +91,12 @@ function App() {
       (t) => t.assigneeId === auth.user!.id && t.status !== 'done',
     )
   }, [studio.tasks, auth.user])
+
+  const notifs = useAssignmentNotifications(
+    auth.user?.id,
+    studio.tasks,
+    studio.ready,
+  )
 
   const boardTasks = useMemo(() => {
     return studio.tasks.filter((t) => {
@@ -327,6 +335,7 @@ function App() {
           {(
             [
               ['dashboard', 'Dashboard'],
+              ['notifications', 'Bildirimler'],
               ['tasks', 'Görevler'],
               ['projects', 'Projeler'],
               ['docs', 'Dökümanlar'],
@@ -348,7 +357,10 @@ function App() {
                 className={`view-nav__btn ${view === id ? 'is-active' : ''}`}
                 onClick={() => setView(id)}
               >
-                {label}
+                <span>{label}</span>
+                {id === 'notifications' && notifs.count > 0 && (
+                  <span className="view-nav__badge">{notifs.count}</span>
+                )}
               </button>
             ))}
         </nav>
@@ -432,6 +444,104 @@ function App() {
       <main className="main">
         {(auth.error || studio.error) && (
           <p className="banner-error">{auth.error || studio.error}</p>
+        )}
+
+        {notifs.showBanner && (
+          <div className="banner-notif" role="status">
+            <div>
+              <strong>Size yeni atanmış görevler var</strong>
+              <p>
+                {notifs.count} yeni görev ataması — Bildirimler’den
+                inceleyebilirsin.
+              </p>
+            </div>
+            <div className="banner-notif__actions">
+              <button
+                type="button"
+                className="btn btn--lime btn--sm"
+                onClick={() => {
+                  setView('notifications')
+                  notifs.dismissBanner()
+                }}
+              >
+                Görüntüle
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => notifs.dismissBanner()}
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        )}
+
+        {view === 'notifications' && (
+          <>
+            <header className="topbar">
+              <div className="topbar__title">
+                <p className="eyebrow">Inbox</p>
+                <h1>Bildirimler</h1>
+              </div>
+              {notifs.count > 0 && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => notifs.markAllSeen()}
+                >
+                  Tümünü okundu say
+                </button>
+              )}
+            </header>
+
+            {notifs.count === 0 ? (
+              <p className="pad muted">Yeni atanmış görev yok.</p>
+            ) : (
+              <>
+                <p className="pad notif-lede">
+                  Size yeni atanmış {notifs.count} görev var. Aynı görev için
+                  bir daha bildirim gösterilmez.
+                </p>
+                <ul className="notif-list">
+                  {notifs.unread.map((t) => {
+                    const proj = studio.projects.find(
+                      (p) => p.id === t.projectId,
+                    )
+                    return (
+                      <li key={t.id} className="notif-card">
+                        <button
+                          type="button"
+                          className="notif-card__main"
+                          onClick={() => {
+                            notifs.markSeen([t.id])
+                            setProjectFilter(t.projectId)
+                            studio.setActiveProjectId(t.projectId)
+                            setEditingTask(t)
+                            setView('tasks')
+                          }}
+                        >
+                          <strong>{t.title}</strong>
+                          <span>
+                            {proj?.name ?? 'Proje'} ·{' '}
+                            {TASK_STATUSES.find((s) => s.id === t.status)
+                              ?.label ?? t.status}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => notifs.markSeen([t.id])}
+                        >
+                          Okundu
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </>
+            )}
+          </>
         )}
 
         {view === 'dashboard' && (
