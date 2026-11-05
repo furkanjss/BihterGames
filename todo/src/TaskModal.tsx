@@ -381,6 +381,11 @@ export function TaskModal({
           <section className="task-detail">
             <header className="task-detail__head">
               <h3>Açıklama</h3>
+              {form.subtasks.length > 0 && (
+                <span>
+                  {doneCount}/{form.subtasks.length} subtask
+                </span>
+              )}
             </header>
             <ContentBlocksEditor
               taskId={task.id}
@@ -388,95 +393,89 @@ export function TaskModal({
               onChange={(notesBlocks) => setForm({ ...form, notesBlocks })}
               placeholder="Not yaz, Enter ile yeni satır, resim ekle…"
             />
-          </section>
 
-          <section className="task-detail">
-            <header className="task-detail__head">
-              <h3>Subtask</h3>
-              <span>
-                {doneCount}/{form.subtasks.length}
-              </span>
-            </header>
-            {form.subtasks.length > 0 && (
-              <ul className="task-detail__subs">
-                {form.subtasks.map((s) => {
-                  const openBody = expandedSub === s.id
-                  return (
-                    <li key={s.id} className={s.done ? 'is-done' : ''}>
-                      <div className="task-detail__sub-row">
-                        <label className="task-detail__sub">
-                          <input
-                            type="checkbox"
-                            checked={s.done}
-                            onChange={() =>
-                              patchSubtask(s.id, { done: !s.done })
+            <div className="task-detail__inline-subs">
+              {form.subtasks.length > 0 && (
+                <ul className="task-detail__subs">
+                  {form.subtasks.map((s) => {
+                    const openBody = expandedSub === s.id
+                    return (
+                      <li key={s.id} className={s.done ? 'is-done' : ''}>
+                        <div className="task-detail__sub-row">
+                          <label className="task-detail__sub">
+                            <input
+                              type="checkbox"
+                              checked={s.done}
+                              onChange={() =>
+                                patchSubtask(s.id, { done: !s.done })
+                              }
+                            />
+                            <input
+                              className="task-detail__sub-title"
+                              value={s.title}
+                              onChange={(e) =>
+                                patchSubtask(s.id, { title: e.target.value })
+                              }
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className={`task-detail__expand${openBody ? ' is-on' : ''}`}
+                            onClick={() =>
+                              setExpandedSub(openBody ? null : s.id)
                             }
-                          />
-                          <input
-                            className="task-detail__sub-title"
-                            value={s.title}
-                            onChange={(e) =>
-                              patchSubtask(s.id, { title: e.target.value })
-                            }
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          className={`task-detail__expand${openBody ? ' is-on' : ''}`}
-                          onClick={() =>
-                            setExpandedSub(openBody ? null : s.id)
-                          }
-                          aria-label="Açıklama"
-                          title="Açıklama / resim"
-                        >
-                          ▾
-                        </button>
-                        <button
-                          type="button"
-                          className="task-detail__remove"
-                          onClick={() => removeSubtask(s.id)}
-                          aria-label="Subtask sil"
-                        >
-                          ×
-                        </button>
-                      </div>
-                      {openBody && (
-                        <div className="task-detail__sub-body">
-                          <ContentBlocksEditor
-                            taskId={task.id}
-                            blocks={s.blocks}
-                            onChange={(blocks) =>
-                              patchSubtask(s.id, { blocks })
-                            }
-                            placeholder="Subtask açıklaması, resim…"
-                          />
+                            aria-label="Açıklama"
+                            title="Açıklama / resim"
+                          >
+                            ▾
+                          </button>
+                          <button
+                            type="button"
+                            className="task-detail__remove"
+                            onClick={() => removeSubtask(s.id)}
+                            aria-label="Subtask sil"
+                          >
+                            ×
+                          </button>
                         </div>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-            <div className="task-detail__add task-detail__add--single">
-              <input
-                value={subtaskTitle}
-                onChange={(e) => setSubtaskTitle(e.target.value)}
-                placeholder="Alt görev ekle…"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addSubtask()
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                onClick={addSubtask}
-                disabled={!subtaskTitle.trim()}
-              >
-                Ekle
-              </button>
+                        {openBody && (
+                          <div className="task-detail__sub-body">
+                            <ContentBlocksEditor
+                              taskId={task.id}
+                              blocks={s.blocks}
+                              onChange={(blocks) =>
+                                patchSubtask(s.id, { blocks })
+                              }
+                              placeholder="Subtask açıklaması, resim…"
+                            />
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+              <div className="task-detail__add task-detail__add--single">
+                <input
+                  value={subtaskTitle}
+                  onChange={(e) => setSubtaskTitle(e.target.value)}
+                  placeholder="Subtask ekle…"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addSubtask()
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={addSubtask}
+                  disabled={!subtaskTitle.trim()}
+                >
+                  Ekle
+                </button>
+              </div>
             </div>
           </section>
 
