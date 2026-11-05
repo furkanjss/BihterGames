@@ -24,6 +24,7 @@ import type {
   ProjectKind,
   ProjectStatus,
   Task,
+  TaskBlock,
   TaskImage,
   TaskLink,
   TaskSubtask,
@@ -421,6 +422,7 @@ export function useStudio(userId: string | undefined) {
         assigneeId: string | null
         dueDate: string | null
         notes: string | null
+        notesBlocks: TaskBlock[]
         links: TaskLink[]
         documentIds: string[]
         subtasks: TaskSubtask[]
@@ -441,6 +443,7 @@ export function useStudio(userId: string | undefined) {
       if (patch.assigneeId !== undefined) row.assignee_id = patch.assigneeId
       if (patch.dueDate !== undefined) row.due_date = patch.dueDate
       if (patch.notes !== undefined) row.notes = patch.notes
+      if (patch.notesBlocks !== undefined) row.notes_blocks = patch.notesBlocks
       if (patch.links !== undefined) row.links = patch.links
       if (patch.documentIds !== undefined) row.document_ids = patch.documentIds
       if (patch.subtasks !== undefined) row.subtasks = patch.subtasks

@@ -1,4 +1,8 @@
 import {
+  blocksFromLegacyNotes,
+  mapSubtasks,
+} from './contentBlocks'
+import {
   normalizeGameArea,
   type Document,
   type FinanceEntry,
@@ -9,7 +13,6 @@ import {
   type Task,
   type TaskImage,
   type TaskLink,
-  type TaskSubtask,
   type StaffRate,
   type WorkLog,
 } from './types'
@@ -31,23 +34,6 @@ function mapTaskLinks(raw: unknown): TaskLink[] {
 function mapTaskDocumentIds(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
   return raw.map((id) => String(id)).filter(Boolean)
-}
-
-function mapTaskSubtasks(raw: unknown): TaskSubtask[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null
-      const row = item as Record<string, unknown>
-      const title = String(row.title ?? '').trim()
-      if (!title) return null
-      return {
-        id: String(row.id ?? crypto.randomUUID()),
-        title,
-        done: Boolean(row.done),
-      }
-    })
-    .filter((x): x is TaskSubtask => x != null)
 }
 
 function mapTaskImages(raw: unknown): TaskImage[] {
@@ -99,6 +85,8 @@ export function mapProject(row: Record<string, unknown>): Project {
 }
 
 export function mapTask(row: Record<string, unknown>): Task {
+  const images = mapTaskImages(row.images)
+  const notes = row.notes ? String(row.notes) : undefined
   return {
     id: String(row.id),
     projectId: String(row.project_id),
@@ -109,11 +97,12 @@ export function mapTask(row: Record<string, unknown>): Task {
     assigneeId: row.assignee_id ? String(row.assignee_id) : null,
     createdAt: String(row.created_at ?? ''),
     dueDate: row.due_date ? String(row.due_date) : undefined,
-    notes: row.notes ? String(row.notes) : undefined,
+    notes,
+    notesBlocks: blocksFromLegacyNotes(notes, images, row.notes_blocks),
     links: mapTaskLinks(row.links),
     documentIds: mapTaskDocumentIds(row.document_ids),
-    subtasks: mapTaskSubtasks(row.subtasks),
-    images: mapTaskImages(row.images),
+    subtasks: mapSubtasks(row.subtasks),
+    images,
     sortOrder: Number(row.sort_order ?? 0),
     startedAt: row.started_at ? String(row.started_at) : undefined,
     completedAt: row.completed_at ? String(row.completed_at).slice(0, 10) : undefined,

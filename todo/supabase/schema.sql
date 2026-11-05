@@ -124,6 +124,7 @@ create table if not exists public.tasks (
   document_ids jsonb not null default '[]'::jsonb,
   subtasks jsonb not null default '[]'::jsonb,
   images jsonb not null default '[]'::jsonb,
+  notes_blocks jsonb not null default '[]'::jsonb,
   sort_order int not null default 0,
   started_at timestamptz,
   completed_at date,

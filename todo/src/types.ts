@@ -132,17 +132,29 @@ export interface TaskLink {
   url: string
 }
 
+export type TaskBlock =
+  | { id: string; type: 'p'; text: string }
+  | {
+      id: string
+      type: 'img'
+      url: string
+      name?: string
+      path?: string
+    }
+
 export interface TaskSubtask {
   id: string
   title: string
   done: boolean
+  /** Notion-like body under the subtask */
+  blocks: TaskBlock[]
 }
 
+/** @deprecated Prefer notesBlocks / inline img blocks */
 export interface TaskImage {
   id: string
   url: string
   name?: string
-  /** Storage object path when uploaded to Supabase */
   path?: string
 }
 
@@ -157,9 +169,12 @@ export interface Task {
   createdAt: string
   dueDate?: string
   notes?: string
+  /** Notion-like description (text + images inline) */
+  notesBlocks: TaskBlock[]
   links: TaskLink[]
   documentIds: string[]
   subtasks: TaskSubtask[]
+  /** Legacy gallery; migrated into notesBlocks on read */
   images: TaskImage[]
   sortOrder: number
   /** When moved to In progress */

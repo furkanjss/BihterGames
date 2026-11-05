@@ -11,6 +11,7 @@ import { LoginView } from './LoginView'
 import { ManagementView } from './ManagementView'
 import { ProjectModal, type ProjectFormValue } from './ProjectModal'
 import { TaskModal, type TaskFormValue } from './TaskModal'
+import { countTaskImages } from './contentBlocks'
 import {
   formatTaskDate,
   formatTaskTime,
@@ -717,6 +718,10 @@ function App() {
                         GAME_AREAS.find((a) => a.id === task.area)?.label ??
                         task.area
                       const who = studio.profileName(task.assigneeId)
+                      const imageCount = countTaskImages(
+                        task.notesBlocks,
+                        task.subtasks,
+                      )
                       const showBefore =
                         dragOverCol === col.id &&
                         dropIndex === index &&
@@ -783,12 +788,12 @@ function App() {
                                 /{task.subtasks.length}
                               </span>
                             )}
-                            {task.images.length > 0 && (
+                            {imageCount > 0 && (
                               <span
                                 className="kcard__refs kcard__refs--img"
                                 title="Görsel"
                               >
-                                {task.images.length} img
+                                {imageCount} img
                               </span>
                             )}
                             {task.links.length > 0 && (
@@ -1291,9 +1296,10 @@ function App() {
             assigneeId: value.assigneeId || null,
             notes: value.notes.trim() || null,
             dueDate: value.dueDate || null,
+            notesBlocks: value.notesBlocks,
             links: value.links,
             subtasks: value.subtasks,
-            images: value.images,
+            images: [],
             projectId: value.projectId,
             startedAt: value.startedAt,
             completedAt: value.completedAt,

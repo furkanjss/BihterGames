@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { ContentBlocksEditor } from './ContentBlocksEditor'
+import {
+  emptyParagraph,
+  ensureEditableBlocks,
+  newId,
+  plainTextFromBlocks,
+} from './contentBlocks'
 import {
   formatTaskDate,
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
   todayDate,
 } from './taskTime'
-import { removeTaskImageFile, uploadTaskImage } from './taskMedia'
 import {
   GAME_AREAS,
   PRIORITIES,
@@ -15,7 +21,7 @@ import {
   type Profile,
   type Project,
   type Task,
-  type TaskImage,
+  type TaskBlock,
   type TaskLink,
   type TaskSubtask,
   type TaskStatus,
@@ -28,11 +34,11 @@ export type TaskFormValue = {
   status: TaskStatus
   assigneeId: string
   notes: string
+  notesBlocks: TaskBlock[]
   projectId: string
   dueDate: string
   links: TaskLink[]
   subtasks: TaskSubtask[]
-  images: TaskImage[]
   startedAt: string | null
   completedAt: string | null
 }
@@ -66,11 +72,8 @@ export function TaskModal({
   const [linkTitle, setLinkTitle] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [subtaskTitle, setSubtaskTitle] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
-  const [mediaError, setMediaError] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const [expandedSub, setExpandedSub] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!open || !task) {
@@ -79,8 +82,7 @@ export function TaskModal({
       setLinkTitle('')
       setLinkUrl('')
       setSubtaskTitle('')
-      setImageUrl('')
-      setMediaError(null)
+      setExpandedSub(null)
       return
     }
     setForm({
@@ -90,11 +92,14 @@ export function TaskModal({
       status: task.status,
       assigneeId: task.assigneeId ?? '',
       notes: task.notes ?? '',
+      notesBlocks: ensureEditableBlocks(task.notesBlocks ?? []),
       projectId: task.projectId,
       dueDate: task.dueDate ?? '',
       links: task.links ?? [],
-      subtasks: task.subtasks ?? [],
-      images: task.images ?? [],
+      subtasks: (task.subtasks ?? []).map((s) => ({
+        ...s,
+        blocks: ensureEditableBlocks(s.blocks ?? []),
+      })),
       startedAt: task.startedAt ?? null,
       completedAt: task.completedAt ?? null,
     })
@@ -104,8 +109,7 @@ export function TaskModal({
     setLinkTitle('')
     setLinkUrl('')
     setSubtaskTitle('')
-    setImageUrl('')
-    setMediaError(null)
+    setExpandedSub(null)
   }, [open, task])
 
   if (!open || !task || !form) return null
@@ -130,10 +134,9 @@ export function TaskModal({
     if (!form) return
     const url = normalizeUrl(linkUrl)
     if (!url) return
-    const title = linkTitle.trim() || url
     setForm({
       ...form,
-      links: [...form.links, { title, url }],
+      links: [...form.links, { title: linkTitle.trim() || url, url }],
     })
     setLinkTitle('')
     setLinkUrl('')
@@ -151,22 +154,29 @@ export function TaskModal({
     if (!form) return
     const title = subtaskTitle.trim()
     if (!title) return
+    const id = newId()
     setForm({
       ...form,
       subtasks: [
         ...form.subtasks,
-        { id: crypto.randomUUID(), title, done: false },
+        {
+          id,
+          title,
+          done: false,
+          blocks: [emptyParagraph()],
+        },
       ],
     })
     setSubtaskTitle('')
+    setExpandedSub(id)
   }
 
-  function toggleSubtask(id: string) {
+  function patchSubtask(id: string, patch: Partial<TaskSubtask>) {
     if (!form) return
     setForm({
       ...form,
       subtasks: form.subtasks.map((s) =>
-        s.id === id ? { ...s, done: !s.done } : s,
+        s.id === id ? { ...s, ...patch } : s,
       ),
     })
   }
@@ -177,94 +187,41 @@ export function TaskModal({
       ...form,
       subtasks: form.subtasks.filter((s) => s.id !== id),
     })
-  }
-
-  function addImageByUrl() {
-    if (!form) return
-    const url = normalizeUrl(imageUrl)
-    if (!url) return
-    setForm({
-      ...form,
-      images: [
-        ...form.images,
-        { id: crypto.randomUUID(), url, name: 'Link' },
-      ],
-    })
-    setImageUrl('')
-    setMediaError(null)
-  }
-
-  async function onPickFiles(files: FileList | null) {
-    if (!files?.length || !form || !task) return
-    setMediaError(null)
-    setUploading(true)
-    const next = [...form.images]
-    try {
-      for (const file of Array.from(files)) {
-        const { image, error } = await uploadTaskImage(task.id, file)
-        if (error || !image) {
-          setMediaError(error || 'Yükleme başarısız')
-          continue
-        }
-        next.push(image)
-      }
-      setForm({ ...form, images: next })
-    } finally {
-      setUploading(false)
-      if (fileRef.current) fileRef.current.value = ''
-    }
-  }
-
-  async function removeImage(id: string) {
-    if (!form) return
-    const img = form.images.find((i) => i.id === id)
-    setForm({
-      ...form,
-      images: form.images.filter((i) => i.id !== id),
-    })
-    if (img?.path) await removeTaskImageFile(img.path)
+    if (expandedSub === id) setExpandedSub(null)
   }
 
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!task || !form || !form.title.trim()) return
-    const id = task.id
+    const pendingUrl = normalizeUrl(linkUrl)
+    const links = [...form.links]
+    if (pendingUrl) {
+      links.push({ title: linkTitle.trim() || pendingUrl, url: pendingUrl })
+    }
+    const pendingSub = subtaskTitle.trim()
+    const subtasks = form.subtasks.map((s) => ({
+      ...s,
+      blocks: ensureEditableBlocks(s.blocks),
+    }))
+    if (pendingSub) {
+      subtasks.push({
+        id: newId(),
+        title: pendingSub,
+        done: false,
+        blocks: [emptyParagraph()],
+      })
+    }
+    const notesBlocks = ensureEditableBlocks(form.notesBlocks)
     const startedAt =
       form.status === 'doing' || startedLocal
         ? fromDatetimeLocalValue(startedLocal)
         : form.startedAt
-    const pendingUrl = normalizeUrl(linkUrl)
-    const links = [...form.links]
-    if (pendingUrl) {
-      links.push({
-        title: linkTitle.trim() || pendingUrl,
-        url: pendingUrl,
-      })
-    }
-    const pendingSub = subtaskTitle.trim()
-    const subtasks = [...form.subtasks]
-    if (pendingSub) {
-      subtasks.push({
-        id: crypto.randomUUID(),
-        title: pendingSub,
-        done: false,
-      })
-    }
-    const pendingImg = normalizeUrl(imageUrl)
-    const images = [...form.images]
-    if (pendingImg) {
-      images.push({
-        id: crypto.randomUUID(),
-        url: pendingImg,
-        name: 'Link',
-      })
-    }
     const payload: TaskFormValue = {
       ...form,
       links,
       subtasks,
-      images,
-      dueDate: form.dueDate,
+      notesBlocks,
+      notes: plainTextFromBlocks(notesBlocks),
       startedAt:
         form.status === 'todo' && !startedLocal ? null : startedAt,
       completedAt:
@@ -274,7 +231,7 @@ export function TaskModal({
     }
     setBusy(true)
     try {
-      await onSave(id, payload)
+      await onSave(task.id, payload)
       onClose()
     } finally {
       setBusy(false)
@@ -421,15 +378,17 @@ export function TaskModal({
             </p>
           ) : null}
 
-          <label>
-            Açıklama / not
-            <textarea
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={5}
-              placeholder="Ne yapılacak, kabul kriterleri…"
+          <section className="task-detail">
+            <header className="task-detail__head">
+              <h3>Açıklama</h3>
+            </header>
+            <ContentBlocksEditor
+              taskId={task.id}
+              blocks={form.notesBlocks}
+              onChange={(notesBlocks) => setForm({ ...form, notesBlocks })}
+              placeholder="Not yaz, Enter ile yeni satır, resim ekle…"
             />
-          </label>
+          </section>
 
           <section className="task-detail">
             <header className="task-detail__head">
@@ -440,26 +399,62 @@ export function TaskModal({
             </header>
             {form.subtasks.length > 0 && (
               <ul className="task-detail__subs">
-                {form.subtasks.map((s) => (
-                  <li key={s.id} className={s.done ? 'is-done' : ''}>
-                    <label className="task-detail__sub">
-                      <input
-                        type="checkbox"
-                        checked={s.done}
-                        onChange={() => toggleSubtask(s.id)}
-                      />
-                      <span>{s.title}</span>
-                    </label>
-                    <button
-                      type="button"
-                      className="task-detail__remove"
-                      onClick={() => removeSubtask(s.id)}
-                      aria-label="Subtask sil"
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
+                {form.subtasks.map((s) => {
+                  const openBody = expandedSub === s.id
+                  return (
+                    <li key={s.id} className={s.done ? 'is-done' : ''}>
+                      <div className="task-detail__sub-row">
+                        <label className="task-detail__sub">
+                          <input
+                            type="checkbox"
+                            checked={s.done}
+                            onChange={() =>
+                              patchSubtask(s.id, { done: !s.done })
+                            }
+                          />
+                          <input
+                            className="task-detail__sub-title"
+                            value={s.title}
+                            onChange={(e) =>
+                              patchSubtask(s.id, { title: e.target.value })
+                            }
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className={`task-detail__expand${openBody ? ' is-on' : ''}`}
+                          onClick={() =>
+                            setExpandedSub(openBody ? null : s.id)
+                          }
+                          aria-label="Açıklama"
+                          title="Açıklama / resim"
+                        >
+                          ▾
+                        </button>
+                        <button
+                          type="button"
+                          className="task-detail__remove"
+                          onClick={() => removeSubtask(s.id)}
+                          aria-label="Subtask sil"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      {openBody && (
+                        <div className="task-detail__sub-body">
+                          <ContentBlocksEditor
+                            taskId={task.id}
+                            blocks={s.blocks}
+                            onChange={(blocks) =>
+                              patchSubtask(s.id, { blocks })
+                            }
+                            placeholder="Subtask açıklaması, resim…"
+                          />
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             )}
             <div className="task-detail__add task-detail__add--single">
@@ -483,66 +478,6 @@ export function TaskModal({
                 Ekle
               </button>
             </div>
-          </section>
-
-          <section className="task-detail">
-            <header className="task-detail__head">
-              <h3>Görseller</h3>
-              <span>{form.images.length}</span>
-            </header>
-            {form.images.length > 0 && (
-              <ul className="task-detail__images">
-                {form.images.map((img) => (
-                  <li key={img.id}>
-                    <a href={img.url} target="_blank" rel="noreferrer">
-                      <img src={img.url} alt={img.name || 'Görsel'} />
-                    </a>
-                    <button
-                      type="button"
-                      className="task-detail__remove"
-                      onClick={() => void removeImage(img.id)}
-                      aria-label="Görseli kaldır"
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="task-detail__media-actions">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(e) => void onPickFiles(e.target.files)}
-              />
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                disabled={uploading}
-                onClick={() => fileRef.current?.click()}
-              >
-                {uploading ? 'Yükleniyor…' : 'Dosya yükle'}
-              </button>
-              <div className="task-detail__add task-detail__add--single">
-                <input
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="veya görsel URL…"
-                />
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  onClick={addImageByUrl}
-                  disabled={!imageUrl.trim()}
-                >
-                  URL ekle
-                </button>
-              </div>
-            </div>
-            {mediaError && <p className="task-detail__error">{mediaError}</p>}
           </section>
 
           <section className="task-detail">
@@ -618,7 +553,7 @@ export function TaskModal({
               <button type="button" className="btn btn--ghost" onClick={onClose}>
                 İptal
               </button>
-              <button type="submit" className="btn btn--lime" disabled={busy || uploading}>
+              <button type="submit" className="btn btn--lime" disabled={busy}>
                 {busy ? 'Kaydediliyor…' : 'Kaydet'}
               </button>
             </div>
