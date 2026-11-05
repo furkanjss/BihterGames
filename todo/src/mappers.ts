@@ -52,20 +52,21 @@ function mapTaskSubtasks(raw: unknown): TaskSubtask[] {
 
 function mapTaskImages(raw: unknown): TaskImage[] {
   if (!Array.isArray(raw)) return []
-  return raw
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null
-      const row = item as Record<string, unknown>
-      const url = String(row.url ?? '').trim()
-      if (!url) return null
-      return {
-        id: String(row.id ?? crypto.randomUUID()),
-        url,
-        name: row.name ? String(row.name) : undefined,
-        path: row.path ? String(row.path) : undefined,
-      }
-    })
-    .filter((x): x is TaskImage => x != null)
+  const out: TaskImage[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const row = item as Record<string, unknown>
+    const url = String(row.url ?? '').trim()
+    if (!url) continue
+    const image: TaskImage = {
+      id: String(row.id ?? crypto.randomUUID()),
+      url,
+    }
+    if (row.name) image.name = String(row.name)
+    if (row.path) image.path = String(row.path)
+    out.push(image)
+  }
+  return out
 }
 
 export function mapProfile(row: Record<string, unknown>): Profile {
