@@ -33,18 +33,11 @@ import {
 } from './types'
 
 type ProjectListFilter = 'active' | 'on-hold' | 'cancelled' | 'all'
+import { GameIcon, NavIcon } from './NavIcons'
 import { useAssignmentNotifications } from './useAssignmentNotifications'
 import { useAuth } from './useAuth'
 import { useStudio } from './useStudio'
-
-type View =
-  | 'dashboard'
-  | 'tasks'
-  | 'projects'
-  | 'docs'
-  | 'hours'
-  | 'ideas'
-  | 'management'
+import type { View } from './views'
 
 function App() {
   const auth = useAuth()
@@ -318,20 +311,24 @@ function App() {
   return (
     <div className="app">
       <aside className="sidebar">
+        <div className="sidebar__glow" aria-hidden />
         <div className="brand">
-          <img
-            src={`${import.meta.env.BASE_URL}logos/logo-lime.png`}
-            alt="Bihter Games"
-            width={52}
-            height={56}
-          />
+          <div className="brand__mark">
+            <img
+              src={`${import.meta.env.BASE_URL}logos/logo-lime.png`}
+              alt="Bihter Games"
+              width={44}
+              height={48}
+            />
+          </div>
           <div>
             <p className="brand__name">Bihter Games</p>
             <p className="brand__sub">Studio Hub</p>
           </div>
         </div>
 
-        <nav className="view-nav">
+        <nav className="view-nav" aria-label="Ana menü">
+          <p className="sidebar__label">Menü</p>
           {(
             [
               ['dashboard', 'Dashboard'],
@@ -356,7 +353,10 @@ function App() {
                 className={`view-nav__btn ${view === id ? 'is-active' : ''}`}
                 onClick={() => setView(id)}
               >
-                {label}
+                <span className="view-nav__icon">
+                  <NavIcon id={id} />
+                </span>
+                <span className="view-nav__label">{label}</span>
               </button>
             ))}
         </nav>
@@ -392,7 +392,9 @@ function App() {
                       setView('tasks')
                     }}
                   >
-                    <span className="project__dot" />
+                    <span className="project__icon">
+                      <GameIcon />
+                    </span>
                     <span className="project__name">{p.name}</span>
                     <span className="project__count">{open}</span>
                   </button>
@@ -418,7 +420,9 @@ function App() {
                       setView('docs')
                     }}
                   >
-                    <span className="project__dot project__dot--muted" />
+                    <span className="project__icon project__icon--muted">
+                      <NavIcon id="docs" />
+                    </span>
                     <span className="project__name">{p.name}</span>
                   </button>
                 </li>
@@ -428,10 +432,21 @@ function App() {
         )}
 
         <div className="sidebar__foot">
-          <p className="sidebar__user">
-            {auth.profile?.displayName || auth.user?.email}
-          </p>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={auth.signOut}>
+          <div className="sidebar__user-card">
+            <span className="sidebar__avatar" aria-hidden>
+              {(auth.profile?.displayName || auth.user?.email || '?')
+                .trim()
+                .charAt(0)
+                .toUpperCase()}
+            </span>
+            <div className="sidebar__user-meta">
+              <p className="sidebar__user">
+                {auth.profile?.displayName || auth.user?.email}
+              </p>
+              <p className="sidebar__role">{isOwner ? 'Studio owner' : 'Üye'}</p>
+            </div>
+          </div>
+          <button type="button" className="btn btn--ghost btn--sm sidebar__logout" onClick={auth.signOut}>
             Çıkış
           </button>
         </div>
