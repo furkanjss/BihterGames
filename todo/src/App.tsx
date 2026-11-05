@@ -613,7 +613,12 @@ function App() {
                   setView('tasks')
                 }}
               >
-                <p className="dash-card__tag">Hızlı erişim</p>
+                <div className="dash-card__top">
+                  <p className="dash-card__tag">Hızlı erişim</p>
+                  <span className="dash-card__icon">
+                    <NavIcon id="tasks" />
+                  </span>
+                </div>
                 <h2>Görevlerim</h2>
                 <p>{myTasks.length} açık görev sana atanmış</p>
               </button>
@@ -623,7 +628,12 @@ function App() {
                 className="dash-card"
                 onClick={() => setView('projects')}
               >
-                <p className="dash-card__tag">Projeler</p>
+                <div className="dash-card__top">
+                  <p className="dash-card__tag">Projeler</p>
+                  <span className="dash-card__icon">
+                    <NavIcon id="projects" />
+                  </span>
+                </div>
                 <h2>{studio.projects.length} proje</h2>
                 <p>Blind Taxi, Frostline ve diğerleri</p>
               </button>
@@ -633,7 +643,12 @@ function App() {
                 className="dash-card"
                 onClick={() => setView('docs')}
               >
-                <p className="dash-card__tag">Dökümanlar</p>
+                <div className="dash-card__top">
+                  <p className="dash-card__tag">Dökümanlar</p>
+                  <span className="dash-card__icon">
+                    <NavIcon id="docs" />
+                  </span>
+                </div>
                 <h2>{studio.documents.length} link</h2>
                 <p>GDD, tasarım ve referanslar</p>
               </button>
