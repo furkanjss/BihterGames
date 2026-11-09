@@ -497,46 +497,44 @@ export function ManagementView({
                     <span>Aylık tutar</span>
                     <b className="pos">{money(row.pay)}</b>
                   </div>
-                  <div className="mgmt__staff-row__pay">
-                    <button
-                      type="button"
-                      className="btn btn--lime btn--sm"
-                      disabled={row.pay <= 0 || settlingUserId === row.userId}
-                      onClick={() => void markPaid(row)}
-                    >
-                      {settlingUserId === row.userId ? 'Kaydediliyor…' : 'Ödendi'}
-                    </button>
-                    <label className="mgmt__rate">
-                      <span>Saatlik ücret (₺)</span>
-                      <div className="mgmt__rate-row">
-                        <input
-                          value={rateDraftValue(row.userId)}
-                          onChange={(e) =>
-                            setRateDrafts((prev) => ({
-                              ...prev,
-                              [row.userId]: formatMoneyInput(e.target.value),
-                            }))
+                  <label className="mgmt__rate">
+                    <span>Saatlik ücret (₺)</span>
+                    <div className="mgmt__rate-row">
+                      <input
+                        value={rateDraftValue(row.userId)}
+                        onChange={(e) =>
+                          setRateDrafts((prev) => ({
+                            ...prev,
+                            [row.userId]: formatMoneyInput(e.target.value),
+                          }))
+                        }
+                        onBlur={() => void saveRate(row.userId)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            void saveRate(row.userId)
                           }
-                          onBlur={() => void saveRate(row.userId)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              void saveRate(row.userId)
-                            }
-                          }}
-                          inputMode="numeric"
-                          placeholder="örn. 500"
-                        />
-                        <button
-                          type="button"
-                          className="btn btn--ghost btn--sm"
-                          onClick={() => void saveRate(row.userId)}
-                        >
-                          Kaydet
-                        </button>
-                      </div>
-                    </label>
-                  </div>
+                        }}
+                        inputMode="numeric"
+                        placeholder="örn. 500"
+                      />
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => void saveRate(row.userId)}
+                      >
+                        Kaydet
+                      </button>
+                    </div>
+                  </label>
+                  <button
+                    type="button"
+                    className="btn btn--paid btn--sm"
+                    disabled={row.pay <= 0 || settlingUserId === row.userId}
+                    onClick={() => void markPaid(row)}
+                  >
+                    {settlingUserId === row.userId ? 'Kaydediliyor…' : 'Ödendi'}
+                  </button>
                 </>
               )}
             </article>
