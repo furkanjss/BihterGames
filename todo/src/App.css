@@ -2015,7 +2015,7 @@
 
 .mgmt__staff-row {
   display: grid;
-  grid-template-columns: minmax(7rem, 1.1fr) minmax(4.5rem, 0.55fr) minmax(5.5rem, 0.7fr) minmax(11rem, 1.4fr);
+  grid-template-columns: minmax(7rem, 1.1fr) minmax(4.5rem, 0.55fr) minmax(5.5rem, 0.7fr) minmax(12rem, 1.5fr);
   gap: 0.75rem 1rem;
   align-items: center;
   width: 100%;
@@ -2024,6 +2024,17 @@
   border-radius: 0.9rem;
   border: 1px solid var(--line);
   background: var(--panel);
+}
+
+.mgmt__staff-row__pay {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  justify-items: start;
+}
+
+.mgmt__staff-row__pay > .btn {
+  min-width: 5.5rem;
 }
 
 .mgmt__staff-row__who {
@@ -2143,7 +2154,7 @@
     grid-column: 1 / -1;
   }
 
-  .mgmt__rate {
+  .mgmt__staff-row__pay {
     grid-column: 1 / -1;
   }
 }

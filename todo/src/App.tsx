@@ -1379,6 +1379,7 @@ function App() {
             onDelete={studio.deleteFinance}
             onDeleteWorkLog={studio.deleteWorkLog}
             onSetStaffRate={studio.setStaffRate}
+            onSettleStaffPay={studio.settleStaffPay}
             profileName={studio.profileName}
           />
         )}

@@ -47,6 +47,7 @@ export function ManagementView({
   onDelete,
   onDeleteWorkLog,
   onSetStaffRate,
+  onSettleStaffPay,
   profileName,
 }: {
   finance: FinanceEntry[]
@@ -67,6 +68,14 @@ export function ManagementView({
   onDelete: (id: string) => Promise<void> | void
   onDeleteWorkLog: (id: string) => Promise<void> | void
   onSetStaffRate: (userId: string, hourlyRate: number) => Promise<void> | void
+  onSettleStaffPay: (input: {
+    userId: string
+    name: string
+    amount: number
+    hours: number
+    rate: number
+    month: string
+  }) => Promise<boolean>
   profileName: (id: string | null | undefined) => string
 }) {
   const [entryType, setEntryType] = useState<FinanceEntryType>('expense')
@@ -84,6 +93,7 @@ export function ManagementView({
   )
   const [hoursUser, setHoursUser] = useState<'all' | string>('all')
   const [rateDrafts, setRateDrafts] = useState<Record<string, string>>({})
+  const [settlingUserId, setSettlingUserId] = useState<string | null>(null)
 
   const totals = useMemo(() => {
     let income = 0
@@ -251,6 +261,33 @@ export function ManagementView({
       delete next[userId]
       return next
     })
+  }
+
+  async function markPaid(row: {
+    userId: string
+    name: string
+    pay: number
+    hours: number
+    rate: number
+  }) {
+    if (row.pay <= 0 || settlingUserId) return
+    const ok = window.confirm(
+      `${row.name} için ${money(row.pay)} maaş olarak kaydedilecek ve ${hoursMonth} saatleri sıfırlanacak. Devam?`,
+    )
+    if (!ok) return
+    setSettlingUserId(row.userId)
+    try {
+      await onSettleStaffPay({
+        userId: row.userId,
+        name: row.name,
+        amount: row.pay,
+        hours: row.hours,
+        rate: row.rate,
+        month: hoursMonth,
+      })
+    } finally {
+      setSettlingUserId(null)
+    }
   }
 
   async function submit(e: FormEvent) {
@@ -460,36 +497,46 @@ export function ManagementView({
                     <span>Aylık tutar</span>
                     <b className="pos">{money(row.pay)}</b>
                   </div>
-                  <label className="mgmt__rate">
-                    <span>Saatlik ücret (₺)</span>
-                    <div className="mgmt__rate-row">
-                      <input
-                        value={rateDraftValue(row.userId)}
-                        onChange={(e) =>
-                          setRateDrafts((prev) => ({
-                            ...prev,
-                            [row.userId]: formatMoneyInput(e.target.value),
-                          }))
-                        }
-                        onBlur={() => void saveRate(row.userId)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            void saveRate(row.userId)
+                  <div className="mgmt__staff-row__pay">
+                    <button
+                      type="button"
+                      className="btn btn--lime btn--sm"
+                      disabled={row.pay <= 0 || settlingUserId === row.userId}
+                      onClick={() => void markPaid(row)}
+                    >
+                      {settlingUserId === row.userId ? 'Kaydediliyor…' : 'Ödendi'}
+                    </button>
+                    <label className="mgmt__rate">
+                      <span>Saatlik ücret (₺)</span>
+                      <div className="mgmt__rate-row">
+                        <input
+                          value={rateDraftValue(row.userId)}
+                          onChange={(e) =>
+                            setRateDrafts((prev) => ({
+                              ...prev,
+                              [row.userId]: formatMoneyInput(e.target.value),
+                            }))
                           }
-                        }}
-                        inputMode="numeric"
-                        placeholder="örn. 500"
-                      />
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        onClick={() => void saveRate(row.userId)}
-                      >
-                        Kaydet
-                      </button>
-                    </div>
-                  </label>
+                          onBlur={() => void saveRate(row.userId)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              void saveRate(row.userId)
+                            }
+                          }}
+                          inputMode="numeric"
+                          placeholder="örn. 500"
+                        />
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => void saveRate(row.userId)}
+                        >
+                          Kaydet
+                        </button>
+                      </div>
+                    </label>
+                  </div>
                 </>
               )}
             </article>

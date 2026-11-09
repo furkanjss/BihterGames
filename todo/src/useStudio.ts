@@ -856,6 +856,78 @@ export function useStudio(userId: string | undefined) {
     [],
   )
 
+  /** Record payroll for a staff member and clear their work logs for that month. */
+  const settleStaffPay = useCallback(
+    async (input: {
+      userId: string
+      name: string
+      amount: number
+      hours: number
+      rate: number
+      month: string
+    }) => {
+      if (!supabase || !userId) return false
+      if (!(await currentUserIsOwner())) {
+        setError('Ödeme kaydı yalnızca stüdyo sahibi.')
+        return false
+      }
+      if (!input.month || input.amount <= 0 || !input.userId) return false
+
+      const [y, m] = input.month.split('-').map(Number)
+      if (!y || !m) return false
+      const next = new Date(y, m, 1)
+      const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-01`
+      const monthStart = `${input.month}-01`
+      const today = new Date().toISOString().slice(0, 10)
+
+      const { data: fin, error: finErr } = await supabase
+        .from('finance_entries')
+        .insert({
+          entry_type: 'payroll',
+          label: input.name,
+          amount: input.amount,
+          currency: 'TRY',
+          entry_date: today,
+          category: 'Maaş',
+          notes: `${input.month} · ${input.hours.toFixed(1)} sa × ${input.rate} ₺`,
+          recurring: false,
+          created_by: userId,
+        })
+        .select('*')
+        .single()
+      if (finErr) {
+        setError(finErr.message)
+        return false
+      }
+
+      setFinance((prev) => [
+        mapFinanceEntry(fin as Record<string, unknown>),
+        ...prev,
+      ])
+
+      const { data: deleted, error: delErr } = await supabase
+        .from('work_logs')
+        .delete()
+        .eq('user_id', input.userId)
+        .gte('work_date', monthStart)
+        .lt('work_date', nextMonth)
+        .select('id')
+      if (delErr) {
+        setError(delErr.message)
+        return false
+      }
+
+      const deletedIds = new Set(
+        (deleted ?? []).map((row) => String((row as { id: string }).id)),
+      )
+      if (deletedIds.size > 0) {
+        setWorkLogs((prev) => prev.filter((l) => !deletedIds.has(l.id)))
+      }
+      return true
+    },
+    [userId],
+  )
+
   const profileName = useCallback(
     (id: string | null | undefined) => {
       if (!id) return 'Atanmamış'
@@ -967,6 +1039,7 @@ export function useStudio(userId: string | undefined) {
     upsertWorkLog,
     deleteWorkLog,
     setStaffRate,
+    settleStaffPay,
     profileName,
     projectMemberIds,
     setProjectMember,
