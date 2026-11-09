@@ -533,7 +533,7 @@ export function ManagementView({
                     disabled={row.pay <= 0 || settlingUserId === row.userId}
                     onClick={() => void markPaid(row)}
                   >
-                    {settlingUserId === row.userId ? 'Kaydediliyor…' : 'Ödendi'}
+                    {settlingUserId === row.userId ? 'Kaydediliyor…' : 'Ödeme Yapıldı'}
                   </button>
                 </>
               )}

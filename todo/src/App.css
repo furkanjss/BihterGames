@@ -2037,7 +2037,7 @@
   justify-self: end;
   align-self: end;
   height: var(--staff-control-h);
-  min-width: 5.75rem;
+  min-width: 7.5rem;
   padding: 0 0.95rem;
   background: #eaf6ee;
   color: var(--lime);
