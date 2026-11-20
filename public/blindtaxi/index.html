@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blind Taxi | Bihter Games</title>
+  <meta
+    name="description"
+    content="Blind Taxi — a chaotic comedy driving game. Blindfolded horse behind the wheel, terrified passengers, one wild ride. Coming from Bihter Games."
+  />
+  <link rel="canonical" href="https://bihtergames.com/blindtaxi/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bihter Games" />
+  <meta property="og:url" content="https://bihtergames.com/blindtaxi/" />
+  <meta property="og:title" content="Blind Taxi | Bihter Games" />
+  <meta
+    property="og:description"
+    content="Trust the driver. Survive the ride. A chaotic comedy driving game from Bihter Games."
+  />
+  <meta property="og:image" content="https://bihtergames.com/blindtaxi/assets/banner-main.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Blind Taxi | Bihter Games" />
+  <meta
+    name="twitter:description"
+    content="Trust the driver. Survive the ride."
+  />
+  <meta name="twitter:image" content="https://bihtergames.com/blindtaxi/assets/banner-main.jpg" />
+  <link rel="icon" type="image/png" href="/logos/logo-lime.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Syne:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/blindtaxi/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="speed-lines" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="/" aria-label="Bihter Games">
+      <img src="/logos/logo-white.png" alt="" width="36" height="38" />
+      <span>bihter GAMES</span>
+    </a>
+    <nav class="nav__links">
+      <a href="#about">About</a>
+      <a href="#ride">The Ride</a>
+      <a href="#gallery">Gallery</a>
+      <a class="nav__cta" href="#wishlist">Wishlist</a>
+    </nav>
+    <button class="nav__burger" type="button" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <main>
+    <!-- HERO: full-bleed banner, brand lives in art -->
+    <section class="hero" id="top">
+      <div class="hero__media" aria-hidden="true">
+        <img
+          src="/blindtaxi/assets/banner-main.jpg"
+          alt=""
+          width="1232"
+          height="706"
+          fetchpriority="high"
+        />
+        <div class="hero__fade"></div>
+      </div>
+
+      <div class="hero__content">
+        <p class="hero__kicker">Coming soon · PC</p>
+        <h1 class="hero__title">
+          <span class="sr-only">Blind Taxi. </span>
+          Trust the driver.<br />
+          <em>Survive the ride.</em>
+        </h1>
+        <p class="hero__tag">
+          Chaotic comedy driving — blindfolded horse at the wheel.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--yellow" href="#wishlist">Get notified</a>
+          <a class="btn btn--ghost" href="#about">What's this?</a>
+        </div>
+      </div>
+
+      <div class="hero__check" aria-hidden="true"></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about" id="about">
+      <div class="about__visual" data-reveal>
+        <img
+          src="/blindtaxi/assets/banner-vertical.png"
+          alt="Blind Taxi — calm blindfolded horse driver and a screaming passenger"
+          width="600"
+          height="900"
+        />
+      </div>
+      <div class="about__copy" data-reveal data-reveal-delay="1">
+        <p class="eyebrow">The pitch</p>
+        <h2>He's blind.<br />You're the passenger.</h2>
+        <p>
+          A horse in opaque goggles just took the wheel. The city is a blur.
+          Your only job? Stay in the cab long enough to laugh — or scream —
+          your way to the destination.
+        </p>
+        <p>
+          Blind Taxi is a chaotic comedy driving experience from Bihter Games:
+          high speed, bad decisions, and the world's most confident blindfolded
+          chauffeur.
+        </p>
+      </div>
+    </section>
+
+    <!-- THE RIDE — one purpose: feature hooks as bold strip -->
+    <section class="ride" id="ride">
+      <div class="ride__head" data-reveal>
+        <p class="eyebrow eyebrow--on-dark">The ride</p>
+        <h2>What you're in for</h2>
+      </div>
+
+      <ul class="ride__list">
+        <li data-reveal>
+          <span class="ride__num">01</span>
+          <div>
+            <h3>Blind confidence</h3>
+            <p>Your driver can't see a thing — and somehow that makes him faster.</p>
+          </div>
+        </li>
+        <li data-reveal data-reveal-delay="1">
+          <span class="ride__num">02</span>
+          <div>
+            <h3>Passenger panic</h3>
+            <p>Every near-miss, horn blast, and wrong turn is comedy fuel.</p>
+          </div>
+        </li>
+        <li data-reveal data-reveal-delay="2">
+          <span class="ride__num">03</span>
+          <div>
+            <h3>City at dusk</h3>
+            <p>Sunset skies, streaking lights, and a taxi that never slows down.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="ride__banner" data-reveal>
+        <img
+          src="/blindtaxi/assets/banner-header.png"
+          alt="Blind Taxi racing through a sunset city"
+          width="920"
+          height="324"
+        />
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="gallery" id="gallery">
+      <div class="gallery__head" data-reveal>
+        <p class="eyebrow">Art</p>
+        <h2>Meet the cab</h2>
+        <p>Key art and Steam capsule frames from Blind Taxi.</p>
+      </div>
+
+      <div class="gallery__track" data-reveal>
+        <figure class="gallery__item gallery__item--wide">
+          <img src="/blindtaxi/assets/banner-main.jpg" alt="Blind Taxi main capsule art" width="1232" height="706" />
+        </figure>
+        <figure class="gallery__item gallery__item--tall">
+          <img src="/blindtaxi/assets/banner-vertical.png" alt="Blind Taxi vertical capsule" width="600" height="900" />
+        </figure>
+        <figure class="gallery__item gallery__item--header">
+          <img src="/blindtaxi/assets/banner-header.png" alt="Blind Taxi header capsule" width="920" height="324" />
+        </figure>
+        <figure class="gallery__item gallery__item--small">
+          <img src="/blindtaxi/assets/banner-small.png" alt="Blind Taxi small capsule" width="462" height="174" />
+        </figure>
+      </div>
+    </section>
+
+    <!-- WISHLIST / CTA -->
+    <section class="wish" id="wishlist">
+      <div class="wish__glow" aria-hidden="true"></div>
+      <div class="wish__inner" data-reveal>
+        <p class="eyebrow eyebrow--on-yellow">Stay close</p>
+        <h2>Hop in before it leaves.</h2>
+        <p>
+          Blind Taxi is in the works. Drop us a line for press, partnerships,
+          or just to yell about the driver.
+        </p>
+        <div class="wish__actions">
+          <a class="btn btn--ink" href="mailto:info@bihtergames.com?subject=Blind%20Taxi">
+            info@bihtergames.com
+          </a>
+          <a
+            class="btn btn--outline-ink"
+            href="https://www.linkedin.com/company/bihtergames/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="footer__brand" href="/">
+      <img src="/logos/logo-white.png" alt="bihter GAMES" width="56" height="60" />
+    </a>
+    <p>© <span id="y"></span> Bihter Games · Blind Taxi</p>
+    <a href="/">Studio home</a>
+  </footer>
+
+  <script src="/blindtaxi/main.js" defer></script>
+</body>
+</html>
