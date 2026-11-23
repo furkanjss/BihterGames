@@ -1663,19 +1663,20 @@
   gap: 0.4rem;
 }
 
-.kcard__avatar {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
+.kcard__who-name {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: #eef5ff;
-  color: #183e5c;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  flex: 0 0 auto;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: #2383e2;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kcard__actions {

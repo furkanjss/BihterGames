@@ -33,13 +33,6 @@ import {
 } from './types'
 
 type ProjectListFilter = 'active' | 'on-hold' | 'cancelled' | 'all'
-
-function personInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0].slice(0, 2).toLocaleUpperCase('tr')
-  return (parts[0][0] + parts[parts.length - 1][0]).toLocaleUpperCase('tr')
-}
 import { GameIcon, NavIcon } from './NavIcons'
 import { useAssignmentNotifications } from './useAssignmentNotifications'
 import { useAuth } from './useAuth'
@@ -1070,8 +1063,8 @@ function App() {
                             )}
                             <span className="kcard__end">
                               {who && (
-                                <span className="kcard__avatar" title={who}>
-                                  {personInitials(who)}
+                                <span className="kcard__who-name" title={who}>
+                                  {who}
                                 </span>
                               )}
                               <span className="kcard__actions">
