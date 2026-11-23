@@ -33,6 +33,13 @@ import {
 } from './types'
 
 type ProjectListFilter = 'active' | 'on-hold' | 'cancelled' | 'all'
+
+function personInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toLocaleUpperCase('tr')
+  return (parts[0][0] + parts[parts.length - 1][0]).toLocaleUpperCase('tr')
+}
 import { GameIcon, NavIcon } from './NavIcons'
 import { useAssignmentNotifications } from './useAssignmentNotifications'
 import { useAuth } from './useAuth'
@@ -45,6 +52,8 @@ function App() {
   const [view, setView] = useState<View>('dashboard')
   const [mineOnly, setMineOnly] = useState(false)
   const [projectFilter, setProjectFilter] = useState<'all' | string>('all')
+  const [taskQuery, setTaskQuery] = useState('')
+  const [composerProjectId, setComposerProjectId] = useState('')
   const [projectListFilter, setProjectListFilter] =
     useState<ProjectListFilter>('active')
   const [title, setTitle] = useState('')
@@ -92,12 +101,19 @@ function App() {
   )
 
   const boardTasks = useMemo(() => {
+    const q = taskQuery.trim().toLocaleLowerCase('tr')
     return studio.tasks.filter((t) => {
       if (mineOnly && auth.user && t.assigneeId !== auth.user.id) return false
       if (projectFilter !== 'all' && t.projectId !== projectFilter) return false
+      if (q && !t.title.toLocaleLowerCase('tr').includes(q)) return false
       return true
     })
-  }, [studio.tasks, mineOnly, projectFilter, auth.user])
+  }, [studio.tasks, mineOnly, projectFilter, taskQuery, auth.user])
+
+  const composerProject =
+    projectFilter !== 'all'
+      ? projectFilter
+      : composerProjectId || studio.activeProjectId
 
   const columns = useMemo(() => {
     return TASK_STATUSES.map((col) => ({
@@ -165,17 +181,39 @@ function App() {
 
   async function submitTask(e: FormEvent) {
     e.preventDefault()
-    const projectId =
-      projectFilter === 'all' ? studio.activeProjectId : projectFilter
-    if (!projectId) return
+    if (!composerProject || !title.trim()) return
     await studio.addTask({
       title,
       area,
       priority,
       assigneeId: assigneeId || null,
-      projectId,
+      projectId: composerProject,
     })
     setTitle('')
+  }
+
+  async function quickMove(task: Task, to: TaskStatus) {
+    const targetIds = studio.tasks
+      .filter((t) => {
+        if (t.status !== to) return false
+        if (mineOnly && auth.user && t.assigneeId !== auth.user.id) return false
+        if (projectFilter !== 'all' && t.projectId !== projectFilter) return false
+        return true
+      })
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((t) => t.id)
+    if (to === 'doing' && task.status === 'todo') {
+      setStartPrompt({
+        taskId: task.id,
+        status: to,
+        toIndex: targetIds.length,
+        visibleIds: targetIds,
+        startedLocal: toDatetimeLocalValue(task.startedAt),
+      })
+      return
+    }
+    await studio.moveTask(task.id, to, targetIds.length, targetIds)
   }
 
   async function submitDoc(e: FormEvent) {
@@ -212,6 +250,10 @@ function App() {
   }
 
   function onDragStart(e: DragEvent, taskId: string) {
+    if ((e.target as HTMLElement).closest('button')) {
+      e.preventDefault()
+      return
+    }
     setDraggingId(taskId)
     didDrag.current = true
     e.dataTransfer.setData('text/plain', taskId)
@@ -452,7 +494,7 @@ function App() {
         </div>
       </aside>
 
-      <main className="main">
+      <main className={`main${view === 'tasks' ? ' main--board' : ''}`}>
         {(auth.error || studio.error) && (
           <p className="banner-error">{auth.error || studio.error}</p>
         )}
@@ -793,6 +835,13 @@ function App() {
                 <h1>Görevler</h1>
               </div>
               <div className="board__toolbar">
+                <input
+                  className="board__search"
+                  value={taskQuery}
+                  onChange={(e) => setTaskQuery(e.target.value)}
+                  placeholder="Görev ara…"
+                  aria-label="Görev ara"
+                />
                 <select
                   value={projectFilter}
                   onChange={(e) => {
@@ -823,47 +872,76 @@ function App() {
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Yeni görev…"
+                placeholder="Yeni görev… Enter ile ekle"
                 required
               />
-              <select
-                value={area}
-                onChange={(e) => setArea(e.target.value as GameArea)}
-                aria-label="Alan"
+              <button
+                type="submit"
+                className="board__add"
+                disabled={!composerProject}
               >
-                {GAME_AREAS.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as Priority)}
-                aria-label="Öncelik"
-              >
-                {PRIORITIES.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={assigneeId}
-                onChange={(e) => setAssigneeId(e.target.value)}
-                aria-label="Kişi"
-              >
-                <option value="">Atanmamış</option>
-                {studio.profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.displayName || p.id.slice(0, 6)}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="board__add">
                 Ekle
               </button>
+              <div className="board__fields">
+                <label className="board__field">
+                  <span>Proje</span>
+                  <select
+                    value={composerProject}
+                    disabled={projectFilter !== 'all'}
+                    onChange={(e) => setComposerProjectId(e.target.value)}
+                  >
+                    {studio.projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="board__field">
+                  <span>Alan</span>
+                  <select
+                    value={area}
+                    onChange={(e) => setArea(e.target.value as GameArea)}
+                  >
+                    {GAME_AREAS.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="board__field">
+                  <span>Öncelik</span>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as Priority)}
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="board__field">
+                  <span>Kişi</span>
+                  <select
+                    value={assigneeId}
+                    onChange={(e) => setAssigneeId(e.target.value)}
+                  >
+                    <option value="">Atanmamış</option>
+                    {studio.profiles.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.displayName || p.id.slice(0, 6)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </form>
+            {taskQuery.trim() && boardTasks.length === 0 && (
+              <p className="board__empty">Bu aramaya uyan görev yok.</p>
+            )}
 
             <div className="kanban">
               {columns.map((col) => (
@@ -892,7 +970,9 @@ function App() {
                       const areaLabel =
                         GAME_AREAS.find((a) => a.id === task.area)?.label ??
                         task.area
-                      const who = studio.profileName(task.assigneeId)
+                      const who = task.assigneeId
+                        ? studio.profileName(task.assigneeId)
+                        : ''
                       const imageCount = countTaskImages(
                         task.notesBlocks,
                         task.subtasks,
@@ -905,11 +985,12 @@ function App() {
                         <li
                           key={task.id}
                           data-task-id={task.id}
-                          className={`kcard kcard--mini${showBefore ? ' is-drop-before' : ''}${draggingId === task.id ? ' is-dragging' : ''}`}
+                          className={`kcard kcard--mini${task.status === 'done' ? ' kcard--done' : ''}${showBefore ? ' is-drop-before' : ''}${draggingId === task.id ? ' is-dragging' : ''}`}
                           draggable
                           onDragStart={(e) => onDragStart(e, task.id)}
                           onDragEnd={onDragEnd}
-                          onClick={() => {
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest('button')) return
                             if (didDrag.current) {
                               didDrag.current = false
                               return
@@ -941,17 +1022,15 @@ function App() {
                           </div>
                           <div className="kcard__meta">
                             {projectFilter === 'all' && proj && (
-                              <span className="btag btag--project">
-                                {proj.name}
+                              <span className="kcard__quiet">{proj.name}</span>
+                            )}
+                            <span className="kcard__quiet">{areaLabel}</span>
+                            {task.priority !== 'medium' && (
+                              <span className={`btag btag--prio-${task.priority}`}>
+                                {PRIORITIES.find((p) => p.id === task.priority)
+                                  ?.label ?? task.priority}
                               </span>
                             )}
-                            <span className={`btag btag--${task.area}`}>
-                              {areaLabel}
-                            </span>
-                            <span className={`btag btag--prio-${task.priority}`}>
-                              {PRIORITIES.find((p) => p.id === task.priority)
-                                ?.label ?? task.priority}
-                            </span>
                             {task.subtasks.length > 0 && (
                               <span
                                 className="kcard__refs kcard__refs--sub"
@@ -968,7 +1047,7 @@ function App() {
                                 className="kcard__refs kcard__refs--img"
                                 title="Görsel"
                               >
-                                {imageCount} img
+                                {imageCount} görsel
                               </span>
                             )}
                             {task.links.length > 0 && (
@@ -989,11 +1068,49 @@ function App() {
                                 {formatTaskTime(task.startedAt)}
                               </span>
                             )}
-                            {task.assigneeId && (
-                              <span className="kcard__who-name" title={who}>
-                                {who}
+                            <span className="kcard__end">
+                              {who && (
+                                <span className="kcard__avatar" title={who}>
+                                  {personInitials(who)}
+                                </span>
+                              )}
+                              <span className="kcard__actions">
+                                {task.status !== 'todo' && (
+                                  <button
+                                    type="button"
+                                    className="kcard__move"
+                                    draggable={false}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      void quickMove(
+                                        task,
+                                        task.status === 'done' ? 'doing' : 'todo',
+                                      )
+                                    }}
+                                  >
+                                    {task.status === 'done' ? 'Geri al' : 'Geri'}
+                                  </button>
+                                )}
+                                {task.status !== 'done' && (
+                                  <button
+                                    type="button"
+                                    className="kcard__move kcard__move--go"
+                                    draggable={false}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      void quickMove(
+                                        task,
+                                        task.status === 'todo' ? 'doing' : 'done',
+                                      )
+                                    }}
+                                  >
+                                    {task.status === 'todo' ? 'Başlat' : 'Bitir'}
+                                  </button>
+                                )}
                               </span>
-                            )}
+                            </span>
                           </div>
                         </li>
                       )

@@ -728,10 +728,24 @@
 .main {
   overflow: auto;
   padding: 0 0 2.5rem;
+  min-height: 0;
   background:
     radial-gradient(ellipse 55% 35% at 100% 0%, rgba(35, 131, 226, 0.07), transparent 55%),
     radial-gradient(ellipse 40% 30% at 0% 0%, rgba(26, 127, 55, 0.05), transparent 50%),
     #f4f4f1;
+}
+
+.main--board {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.main--board .board {
+  flex: 1;
+  min-height: 0;
 }
 
 .topbar {
@@ -1272,6 +1286,7 @@
 }
 
 .board__toolbar select,
+.board__toolbar input,
 .board__composer select,
 .board__composer input {
   padding: 0.55rem 0.75rem;
@@ -1281,6 +1296,10 @@
   color: var(--board-ink);
   color-scheme: light;
   font-size: 0.9rem;
+}
+
+.board__search {
+  min-width: 11rem;
 }
 
 .board__toolbar select option,
@@ -1307,8 +1326,9 @@
 
 .board__composer {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(7rem, 0.7fr)) auto;
-  gap: 0.55rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: end;
   padding: 0.85rem;
   border-radius: 1.05rem;
   border: 1px solid var(--board-line);
@@ -1316,8 +1336,37 @@
   box-shadow: var(--shadow-sm);
 }
 
-.board__composer input {
+.board__composer input,
+.board__field select {
+  width: 100%;
   min-width: 0;
+}
+
+.board__fields {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.board__field {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.board__field span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--board-muted);
+}
+
+.board__empty {
+  margin: 0;
+  color: var(--board-muted);
+  font-size: 0.92rem;
 }
 
 .board__add {
@@ -1336,6 +1385,12 @@
   transform: translateY(-1px);
 }
 
+.board__add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Kanban */
 .kanban {
   display: grid;
@@ -1350,8 +1405,8 @@
 
 .kanban__col {
   border-radius: 1.15rem;
-  min-height: 320px;
-  max-height: calc(100svh - 220px);
+  min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(55, 53, 47, 0.06);
@@ -1584,21 +1639,74 @@
   color: #5a5a55;
 }
 
-.kcard__who-name {
+.kcard--done .kcard__title {
+  color: var(--board-muted);
+  font-weight: 550;
+}
+
+.kcard__quiet {
+  color: var(--board-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.kcard__quiet + .kcard__quiet::before {
+  content: '·';
+  margin: 0 0.35rem 0 0.15rem;
+  color: rgba(55, 53, 47, 0.35);
+}
+
+.kcard__end {
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
-  margin-left: auto;
-  padding: 0.18rem 0.5rem;
+  gap: 0.4rem;
+}
+
+.kcard__avatar {
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 999px;
-  background: #2383e2;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef5ff;
+  color: #183e5c;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex: 0 0 auto;
+}
+
+.kcard__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.kcard__move {
+  border: 1px solid var(--board-line);
+  background: #fff;
+  color: var(--board-ink);
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.2;
-  max-width: 9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.kcard__move--go {
+  background: #1a1a18;
+  color: #fff;
+  border-color: transparent;
+}
+
+.kcard__move:hover {
+  border-color: rgba(55, 53, 47, 0.28);
+}
+
+.kcard__move--go:hover {
+  background: #2c2c28;
 }
 
 .kcard__who {
@@ -1626,16 +1734,8 @@
 }
 
 @media (max-width: 1100px) {
-  .board__composer {
+  .board__fields {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .board__composer input {
-    grid-column: 1 / -1;
-  }
-
-  .board__add {
-    grid-column: 1 / -1;
   }
 }
 
@@ -3311,6 +3411,11 @@
 }
 
 @media (max-width: 960px) {
+  .main--board {
+    height: auto;
+    overflow: auto;
+  }
+
   .dash-grid,
   .kanban {
     grid-template-columns: 1fr;
@@ -3318,6 +3423,7 @@
 
   .kanban__col {
     max-height: none;
+    min-height: 280px;
   }
 }
 

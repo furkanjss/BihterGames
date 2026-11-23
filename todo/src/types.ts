@@ -207,9 +207,9 @@ export const PRIORITIES: { id: Priority; label: string }[] = [
 ]
 
 export const TASK_STATUSES: { id: TaskStatus; label: string }[] = [
-  { id: 'todo', label: 'Not started' },
-  { id: 'doing', label: 'In progress' },
-  { id: 'done', label: 'Done' },
+  { id: 'todo', label: 'Başlamadı' },
+  { id: 'doing', label: 'Sürüyor' },
+  { id: 'done', label: 'Bitti' },
 ]
 
 export const PROJECT_STATUSES: { id: ProjectStatus; label: string }[] = [
