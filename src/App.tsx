@@ -126,33 +126,9 @@ function App() {
             <p className="eyebrow">Games</p>
             <h2>In the works</h2>
             <p className="lede">
-              Our first titles are taking shape. Jump into Blind Taxi — more
-              announcements soon.
+              Our first titles are taking shape. More announcements soon.
             </p>
           </div>
-
-          <a
-            className="games__feature"
-            href="/blindtaxi/"
-            data-reveal
-            data-reveal-delay="1"
-          >
-            <img
-              className="games__feature-art"
-              src="/blindtaxi/assets/banner-small.png"
-              alt=""
-              width={462}
-              height={174}
-            />
-            <div className="games__feature-copy">
-              <span className="games__feature-tag">Coming soon · PC</span>
-              <h3>Blind Taxi</h3>
-              <p>Trust the driver. Survive the ride.</p>
-            </div>
-            <span className="games__feature-go" aria-hidden="true">
-              →
-            </span>
-          </a>
         </section>
 
         <section className="studio" id="studio">
