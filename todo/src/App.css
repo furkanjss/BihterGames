@@ -716,12 +716,17 @@
   border-radius: 0.45rem;
   border: 1px solid var(--line);
   background: var(--ink);
+  color: var(--snow);
   font-size: 0.85rem;
 }
 
 .name-edit__row {
   display: flex;
   gap: 0.35rem;
+}
+
+.name-edit__row .btn {
+  flex: 1;
 }
 
 /* Main */

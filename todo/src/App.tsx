@@ -79,6 +79,8 @@ function App() {
     startedLocal: string
   } | null>(null)
   const [notifPanelOpen, setNotifPanelOpen] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [editingName, setEditingName] = useState(false)
 
   const myTasks = useMemo(() => {
     if (!auth.user) return []
@@ -320,6 +322,14 @@ function App() {
     })
   }
 
+  async function saveName() {
+    const ok = await auth.updateDisplayName(nameDraft)
+    if (ok) {
+      setEditingName(false)
+      await studio.refresh()
+    }
+  }
+
   const isOwner =
     (auth.user?.email || '').toLowerCase() === OWNER_EMAIL.toLowerCase()
 
@@ -467,21 +477,67 @@ function App() {
         )}
 
         <div className="sidebar__foot">
-          <div className="sidebar__user-card">
-            <span className="sidebar__avatar" aria-hidden>
-              {(auth.profile?.displayName || auth.user?.email || '?')
-                .trim()
-                .charAt(0)
-                .toUpperCase()}
-            </span>
-            <div className="sidebar__user-meta">
-              <p className="sidebar__user">
-                {auth.profile?.displayName || auth.user?.email}
-              </p>
-              <p className="sidebar__role">{isOwner ? 'Studio owner' : 'Üye'}</p>
+          {editingName ? (
+            <div className="name-edit">
+              <input
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                placeholder="Görünen ad"
+                aria-label="Görünen ad"
+                autoFocus
+              />
+              <div className="name-edit__row">
+                <button
+                  type="button"
+                  className="btn btn--lime btn--sm"
+                  onClick={() => void saveName()}
+                >
+                  Kaydet
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => setEditingName(false)}
+                >
+                  İptal
+                </button>
+              </div>
             </div>
-          </div>
-          <button type="button" className="btn btn--ghost btn--sm sidebar__logout" onClick={auth.signOut}>
+          ) : (
+            <>
+              <div className="sidebar__user-card">
+                <span className="sidebar__avatar" aria-hidden>
+                  {(auth.profile?.displayName || auth.user?.email || '?')
+                    .trim()
+                    .charAt(0)
+                    .toUpperCase()}
+                </span>
+                <div className="sidebar__user-meta">
+                  <p className="sidebar__user">
+                    {auth.profile?.displayName || auth.user?.email}
+                  </p>
+                  <p className="sidebar__role">
+                    {isOwner ? 'Studio owner' : 'Üye'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm sidebar__logout"
+                onClick={() => {
+                  setNameDraft(auth.profile?.displayName || '')
+                  setEditingName(true)
+                }}
+              >
+                İsmi değiştir
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm sidebar__logout"
+            onClick={auth.signOut}
+          >
             Çıkış
           </button>
         </div>
